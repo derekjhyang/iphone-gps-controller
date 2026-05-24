@@ -70,12 +70,48 @@
     .tab.active { background:#fff; color:#172033; box-shadow:0 1px 2px rgba(16,24,40,.08); }
     .tab-panel { display:none; }
     .tab-panel.active { display:block; }
+    .workflow-tabs { display:flex; gap:6px; padding:4px; background:#eef2f7; border-radius:8px; }
+    .workflow-tab { flex:1; min-height:40px; background:transparent; color:#344054; border-radius:6px; padding:8px 10px; }
+    .workflow-tab:hover { background:#dde6f2; }
+    .workflow-tab.active { background:#fff; color:#172033; box-shadow:0 1px 2px rgba(16,24,40,.08); }
+    .workflow-panel { display:none; }
+    .workflow-panel.active { display:block; }
     .help-list { display:grid; gap:8px; margin-top:10px; }
     .help-item { border:1px solid var(--line); border-radius:8px; padding:10px; background:#fbfcfe; }
     .help-item b { display:block; font-size:13px; }
     .help-item span { display:block; margin-top:3px; color:var(--muted); font-size:12px; line-height:1.4; }
     .history-list { display:grid; gap:6px; margin-top:8px; }
     .history-item { width:100%; min-height:36px; text-align:left; background:#fff; border:1px solid #d6dde7; border-radius:8px; padding:8px 10px; color:#172033; font-size:13px; cursor:pointer; justify-content:flex-start; }
+    .route-toolbar { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .speed-presets { display:grid; grid-template-columns:repeat(4, 1fr); gap:6px; margin-top:8px; }
+    .speed-presets button { min-height:34px; padding:7px 8px; font-size:12px; }
+    .route-summary { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px; }
+    .route-stat { border:1px solid var(--line); border-radius:8px; padding:9px 10px; background:#fbfcfe; }
+    .route-stat b { display:block; font-size:12px; color:#344054; }
+    .route-stat span { display:block; margin-top:3px; color:var(--text); font-size:14px; font-weight:800; }
+    .route-list { display:grid; gap:6px; max-height:150px; overflow:auto; margin-top:10px; }
+    .route-item { display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:8px; min-height:34px; border:1px solid var(--line); border-radius:8px; padding:7px 8px; background:#fbfcfe; font-size:12px; }
+    .route-item-main { min-height:28px; border:0; padding:0; background:transparent; color:var(--text); text-align:left; justify-content:flex-start; font-weight:600; }
+    .route-item-main:hover { background:transparent; color:var(--primary); }
+    .route-index { width:22px; height:22px; border-radius:50%; background:#d9e7ff; color:#103f91; display:flex; align-items:center; justify-content:center; font-weight:800; }
+    .route-remove { width:28px; height:28px; min-height:28px; padding:0; border-radius:50%; }
+    .route-waypoint-marker { width:28px; height:28px; border-radius:50%; background:#fff; border:3px solid var(--primary); color:var(--primary); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:900; box-shadow:0 4px 12px rgba(16,24,40,.22); }
+    .route-waypoint-marker span { line-height:1; }
+    .route-insert-marker { width:22px; height:22px; border-radius:50%; background:var(--primary); border:2px solid #fff; color:#fff; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:900; box-shadow:0 4px 12px rgba(16,24,40,.2); }
+    .route-insert-marker span { line-height:1; transform:translateY(-1px); }
+    .progress { position:relative; height:18px; border-radius:999px; background:#e6ebf2; overflow:visible; margin-top:12px; }
+    .progress > span:first-child { display:block; height:8px; width:0%; background:var(--primary); border-radius:999px; position:absolute; left:0; top:5px; transition:width .2s ease; }
+    .progress-walker { position:absolute; top:50%; left:0%; width:26px; height:26px; border-radius:50%; transform:translate(-50%, -50%); background:#fff; border:2px solid var(--primary); color:var(--primary); display:flex; align-items:center; justify-content:center; box-shadow:0 4px 12px rgba(16,24,40,.2); transition:left .2s ease; z-index:2; }
+    .progress-walker .icon { width:15px; height:15px; }
+    .modal-backdrop { position:fixed; inset:0; z-index:1000; background:rgba(15,23,42,.42); display:none; align-items:center; justify-content:center; padding:18px; }
+    .modal-backdrop.open { display:flex; }
+    .modal { width:min(460px, 100%); background:#fff; border-radius:8px; border:1px solid var(--line); box-shadow:0 24px 70px rgba(16,24,40,.28); padding:16px; }
+    .modal h2 { margin:0 0 10px; font-size:17px; display:flex; align-items:center; gap:7px; }
+    .modal-summary { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:12px 0; }
+    .modal-stat { border:1px solid var(--line); border-radius:8px; background:#fbfcfe; padding:10px; }
+    .modal-stat b { display:block; color:#344054; font-size:12px; }
+    .modal-stat span { display:block; margin-top:4px; font-weight:800; }
+    .modal-actions { display:flex; justify-content:flex-end; flex-wrap:wrap; gap:8px; margin-top:12px; }
     .simple-steps { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:12px; }
     .simple-step { border:1px solid var(--line); border-radius:8px; padding:10px; background:#fbfcfe; }
     .simple-step b { display:flex; align-items:center; gap:6px; font-size:13px; }
@@ -117,6 +153,7 @@
       .header { display:grid; }
       .language { width:100%; }
       .grid-2, .search-row, .command-row { grid-template-columns:1fr; }
+      .route-summary, .speed-presets { grid-template-columns:1fr 1fr; }
       .simple-steps { grid-template-columns:1fr; }
       .status-bar { align-items:flex-start; display:grid; }
       .status-dots { justify-content:flex-start; }
@@ -163,6 +200,18 @@
         </section>
 
         <section class="card">
+          <h2><i data-lucide="crosshair" class="icon" aria-hidden="true"></i><span data-i18n="myLocationTitle">我的位置</span></h2>
+          <button class="secondary primary-wide" onclick="locateBrowserCurrent()"><i data-lucide="locate-fixed" class="icon" aria-hidden="true"></i><span data-i18n="buttonMyLocation">定位目前位置</span></button>
+          <p id="myLocationStatus" class="muted" data-i18n="myLocationHint">用瀏覽器定位查看你目前所在位置，並同步到地圖與座標欄位。</p>
+        </section>
+
+        <nav class="workflow-tabs" aria-label="location workflow">
+          <button id="workflowSingleTab" class="workflow-tab active" onclick="showWorkflow('single')"><i data-lucide="map-pin" class="icon icon-sm" aria-hidden="true"></i><span data-i18n="tabSingleLocation">單點定位</span></button>
+          <button id="workflowRouteTab" class="workflow-tab" onclick="showWorkflow('route')"><i data-lucide="route" class="icon icon-sm" aria-hidden="true"></i><span data-i18n="tabWalkRoute">路線走路</span></button>
+        </nav>
+
+        <div id="workflowSingle" class="workflow-panel active">
+        <section class="card">
           <h2><i data-lucide="map-pin" class="icon" aria-hidden="true"></i><span data-i18n="locationTitle">設定位置</span></h2>
           <div class="simple-steps" aria-label="simple workflow">
             <div class="simple-step"><b><i data-lucide="smartphone" class="icon icon-sm" aria-hidden="true"></i><span data-i18n="simpleStep1Title">1. 接上手機</span></b><span data-i18n="simpleStep1Text">插 USB、解鎖、按信任。</span></div>
@@ -185,6 +234,48 @@
             <div id="searchHistory" class="history-list"></div>
           </details>
         </section>
+        </div>
+
+        <div id="workflowRoute" class="workflow-panel">
+        <section class="card">
+          <h2><i data-lucide="route" class="icon" aria-hidden="true"></i><span data-i18n="routeTitle">模擬走路</span></h2>
+          <div class="grid-2">
+            <div><label for="walkSpeed" data-i18n="labelWalkSpeed">速度（km/h）</label><input id="walkSpeed" inputmode="decimal" value="3" /></div>
+            <div><label for="walkInterval" data-i18n="labelWalkInterval">更新間隔（秒）</label><input id="walkInterval" inputmode="decimal" value="2" /></div>
+          </div>
+          <div class="grid-2" style="margin-top:10px">
+            <div><label for="routeLat" data-i18n="labelRouteLatitude">路線點緯度</label><input id="routeLat" inputmode="decimal" value="25.033964" /></div>
+            <div><label for="routeLon" data-i18n="labelRouteLongitude">路線點經度</label><input id="routeLon" inputmode="decimal" value="121.564468" /></div>
+          </div>
+          <div class="speed-presets" aria-label="speed presets">
+            <button class="secondary" onclick="setWalkSpeed(3)"><i data-lucide="footprints" class="icon icon-sm" aria-hidden="true"></i><span data-i18n="presetSlowWalk">慢走 3</span></button>
+            <button class="secondary" onclick="setWalkSpeed(5)"><i data-lucide="person-standing" class="icon icon-sm" aria-hidden="true"></i><span data-i18n="presetWalk">步行 5</span></button>
+            <button class="secondary" onclick="setWalkSpeed(9)"><i data-lucide="zap" class="icon icon-sm" aria-hidden="true"></i><span data-i18n="presetJog">慢跑 9</span></button>
+            <button class="secondary" onclick="setWalkSpeed(20)"><i data-lucide="gauge" class="icon icon-sm" aria-hidden="true"></i><span data-i18n="presetFast">快速 20</span></button>
+          </div>
+          <div class="route-toolbar" style="margin-top:10px">
+            <button id="routeEditButton" class="secondary" onclick="toggleRoutePlanning()"><i data-lucide="pen-line" class="icon" aria-hidden="true"></i><span data-i18n="buttonPlanRoute">地圖選點</span></button>
+            <button class="secondary" onclick="addCurrentPointToRoute()"><i data-lucide="plus" class="icon" aria-hidden="true"></i><span data-i18n="buttonAddPoint">加入目前點</span></button>
+          </div>
+          <div class="actions" style="margin-top:8px">
+            <button onclick="startWalkRoute()"><i data-lucide="play" class="icon" aria-hidden="true"></i><span data-i18n="buttonStartWalk">預覽並開始</span></button>
+            <button class="secondary" onclick="stopWalkRoute()"><i data-lucide="square" class="icon" aria-hidden="true"></i><span data-i18n="buttonStopWalk">停止走路</span></button>
+            <button class="secondary" onclick="undoRoutePoint()"><i data-lucide="undo-2" class="icon" aria-hidden="true"></i><span data-i18n="buttonUndoPoint">刪除最後一點</span></button>
+            <button class="secondary" onclick="reverseRoute()"><i data-lucide="repeat-2" class="icon" aria-hidden="true"></i><span data-i18n="buttonReverseRoute">反向路線</span></button>
+            <button class="secondary" onclick="clearRoute()"><i data-lucide="eraser" class="icon" aria-hidden="true"></i><span data-i18n="buttonClearRoute">清空路線</span></button>
+          </div>
+          <div id="routeSummary" class="route-summary" aria-live="polite">
+            <div class="route-stat"><b data-i18n="routeDistance">路線距離</b><span id="routeDistanceValue">0 m</span></div>
+            <div class="route-stat"><b data-i18n="routeEta">預估時間</b><span id="routeEtaValue">--</span></div>
+          </div>
+          <div class="progress" aria-hidden="true">
+            <span id="routeProgress"></span>
+            <span id="routeProgressWalker" class="progress-walker"><i data-lucide="person-standing" class="icon" aria-hidden="true"></i></span>
+          </div>
+          <p id="routeStatus" class="muted" data-i18n="routeHint">按「規劃路線」後在地圖上依序點選路線點。</p>
+          <div id="routeList" class="route-list"></div>
+        </section>
+        </div>
 
         <details class="support-panel">
           <summary><span><i data-lucide="sliders-horizontal" class="icon" aria-hidden="true"></i><span data-i18n="supportTitle">更多選項</span></span></summary>
@@ -278,11 +369,36 @@
     </main>
   </div>
 
+  <div id="routePreviewModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="routePreviewTitle">
+    <div class="modal">
+      <h2 id="routePreviewTitle"><i data-lucide="route" class="icon" aria-hidden="true"></i><span data-i18n="routePreviewTitle">確認走路路線</span></h2>
+      <p class="muted" data-i18n="routePreviewText">確認後會開始依照這條路線更新 iPhone 模擬定位。</p>
+      <div class="modal-summary">
+        <div class="modal-stat"><b data-i18n="routeDistance">路線距離</b><span id="previewDistance">0 m</span></div>
+        <div class="modal-stat"><b data-i18n="routeEta">預估時間</b><span id="previewEta">--</span></div>
+        <div class="modal-stat"><b data-i18n="previewSpeed">速度</b><span id="previewSpeed">--</span></div>
+        <div class="modal-stat"><b data-i18n="previewPoints">路線點</b><span id="previewPoints">0</span></div>
+      </div>
+      <p id="previewRouteText" class="muted"></p>
+      <div class="modal-actions">
+        <button class="secondary" onclick="closeRoutePreview()"><i data-lucide="x" class="icon" aria-hidden="true"></i><span data-i18n="buttonCancel">取消</span></button>
+        <button onclick="confirmStartWalkRoute()"><i data-lucide="play" class="icon" aria-hidden="true"></i><span data-i18n="buttonConfirmStartWalk">確認開始</span></button>
+      </div>
+    </div>
+  </div>
+
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
   <script>
 const $ = id => document.getElementById(id);
 let marker;
+let routePlanning = false;
+let routePoints = [];
+let routeMarkers = [];
+let routeLine = null;
+let routeInsertMarkers = [];
+let currentLocationCircle = null;
+let pendingWalkRoute = null;
 let tunnel = null;
 let lastTunnelData = null;
 let lastDeviceOk = false;
@@ -296,11 +412,21 @@ const i18n = {
     tunnelHint:"系統會自動連到手機，不需要手動設定。", mountTitle:"手機準備完成", mountHint:"看到「已準備」後，就可以選地點。",
     sessionTitle:"定位狀態", sessionHint:"設定後會維持在新地點，直到你停止或清除。", buttonRefresh:"重新檢查",
     healthTitle:"系統檢查", healthPhone:"手機", healthConnection:"連線", healthReady:"準備",
+    tabSingleLocation:"單點定位", tabWalkRoute:"路線走路",
     simpleStep1Title:"1. 接上手機", simpleStep1Text:"插 USB、解鎖、按信任。", simpleStep2Title:"2. 選地點", simpleStep2Text:"搜尋或直接點地圖。", simpleStep3Title:"3. 按設定", simpleStep3Text:"讓 iPhone 使用這個位置。", supportTitle:"更多選項",
     buttonTroubleshoot:"幫我檢查", tunnelCommand:"連線服務", buttonCopy:"複製", buttonStartTunnel:"重試連線", buttonCopyFallback:"複製備援指令",
     tunnelCommandHint:"通常不用動這裡。只有一直無法連到手機時，才按「重試連線」或複製備援指令。", locationTitle:"設定位置",
+    myLocationTitle:"我的位置", buttonMyLocation:"定位目前位置", myLocationHint:"用瀏覽器定位查看你目前所在位置，並同步到地圖與座標欄位。", myLocationLoading:"正在取得瀏覽器定位...", myLocationLoaded:"已定位目前位置。", myLocationDenied:"瀏覽器無法取得目前位置，請允許定位權限後再試。",
     labelSearch:"搜尋地點", placeholderSearch:"例如：台北 101", buttonSearch:"搜尋", labelLatitude:"緯度", labelLongitude:"經度",
     buttonSetLocation:"設定到 iPhone", buttonStop:"停止定位", buttonClear:"清除位置", hintClickMap:"也可以直接點地圖選擇位置。",
+    routeTitle:"模擬走路", labelWalkSpeed:"速度（km/h）", labelWalkInterval:"更新間隔（秒）", labelRouteLatitude:"路線點緯度", labelRouteLongitude:"路線點經度", buttonPlanRoute:"地圖選點", buttonStopPlanning:"完成選點",
+    buttonAddPoint:"加入目前點", buttonStartWalk:"預覽並開始", buttonStopWalk:"停止走路", buttonUndoPoint:"刪除最後一點", buttonReverseRoute:"反向路線", buttonClearRoute:"清空路線",
+    routePreviewTitle:"確認走路路線", routePreviewText:"確認後會開始依照這條路線更新 iPhone 模擬定位。", previewSpeed:"速度", previewPoints:"路線點", buttonCancel:"取消", buttonConfirmStartWalk:"確認開始",
+    presetSlowWalk:"慢走 3", presetWalk:"步行 5", presetJog:"慢跑 9", presetFast:"快速 20", routeDistance:"路線距離", routeEta:"預估時間",
+    routeHint:"按「規劃路線」後在地圖上依序點選路線點。", routePlanning:"路線規劃中：點地圖加入下一個路線點。",
+    routeNeedPoints:"至少需要 2 個路線點。", routeStarted:"已開始模擬走路。", routeStopped:"已停止走路。", routeCleared:"路線已清空。",
+    routeInvalidSpeed:"速度或更新間隔無效。", routePoint:"路線點", routeProgress:"走路進度", routeReversed:"路線已反向。", routeUndo:"已刪除最後一個路線點。", routeSelected:"已選取路線點。", routeInserted:"已插入新的路線點。",
+    routeNoDistance:"加入至少 2 個路線點後會顯示預估時間。",
     summarySearchHistory:"最近搜尋", tabHelp:"檢查建議", tabActivity:"操作紀錄", tabAdvanced:"進階", diagnosisIdle:"按「幫我檢查」會列出目前最可能需要處理的事。",
     buttonCopyActivity:"複製紀錄", buttonClearActivity:"清除", buttonLog:"查看連線紀錄", labelRsdHost:"RSD Host", labelRsdPort:"RSD Port",
     labelMode:"模式", optionAuto:"自動", optionRsd:"僅 RSD", optionLegacy:"舊模式", advancedHint:"一般情況保持「自動」即可。只有在排查特定 iOS 或 pymobiledevice3 問題時才需要更改。",
@@ -328,11 +454,21 @@ const i18n = {
     tunnelHint:"The app connects to your phone automatically.", mountTitle:"Phone ready", mountHint:"When this says Ready, you can choose a place.",
     sessionTitle:"Location status", sessionHint:"After setting a place, it stays active until you stop or clear it.", buttonRefresh:"Check again",
     healthTitle:"Health Check", healthPhone:"Phone", healthConnection:"Connection", healthReady:"Ready",
+    tabSingleLocation:"Single point", tabWalkRoute:"Walking route",
     simpleStep1Title:"1. Connect phone", simpleStep1Text:"Plug in, unlock, tap Trust.", simpleStep2Title:"2. Pick a place", simpleStep2Text:"Search or click the map.", simpleStep3Title:"3. Apply", simpleStep3Text:"Set this location on iPhone.", supportTitle:"More options",
     buttonTroubleshoot:"Help me check", tunnelCommand:"Phone Connection", buttonCopy:"Copy", buttonStartTunnel:"Retry connection", buttonCopyFallback:"Copy fallback command",
     tunnelCommandHint:"You usually do not need this section. Use Retry connection or the fallback command only if the phone never connects.", locationTitle:"Set Location",
+    myLocationTitle:"My location", buttonMyLocation:"Locate me", myLocationHint:"Use browser location to show where you are and sync it to the map and coordinate fields.", myLocationLoading:"Getting browser location...", myLocationLoaded:"Current location loaded.", myLocationDenied:"Browser location is unavailable. Allow location permission and try again.",
     labelSearch:"Search place", placeholderSearch:"e.g. Taipei 101", buttonSearch:"Search", labelLatitude:"Latitude", labelLongitude:"Longitude",
     buttonSetLocation:"Set on iPhone", buttonStop:"Stop Simulation", buttonClear:"Clear Location", hintClickMap:"You can also click the map to choose a place.",
+    routeTitle:"Simulate Walking", labelWalkSpeed:"Speed (km/h)", labelWalkInterval:"Update interval (sec)", labelRouteLatitude:"Waypoint latitude", labelRouteLongitude:"Waypoint longitude", buttonPlanRoute:"Map picking", buttonStopPlanning:"Done picking",
+    buttonAddPoint:"Add current point", buttonStartWalk:"Preview and start", buttonStopWalk:"Stop walking", buttonUndoPoint:"Delete last point", buttonReverseRoute:"Reverse route", buttonClearRoute:"Clear route",
+    routePreviewTitle:"Confirm walking route", routePreviewText:"After confirmation, the app will update iPhone simulated location along this route.", previewSpeed:"Speed", previewPoints:"Waypoints", buttonCancel:"Cancel", buttonConfirmStartWalk:"Confirm start",
+    presetSlowWalk:"Slow 3", presetWalk:"Walk 5", presetJog:"Jog 9", presetFast:"Fast 20", routeDistance:"Route distance", routeEta:"Estimated time",
+    routeHint:"Press Plan route, then click the map to add route points in order.", routePlanning:"Planning route: click the map to add the next waypoint.",
+    routeNeedPoints:"Add at least 2 route points.", routeStarted:"Walking simulation started.", routeStopped:"Walking simulation stopped.", routeCleared:"Route cleared.",
+    routeInvalidSpeed:"Speed or update interval is invalid.", routePoint:"Route point", routeProgress:"Walking progress", routeReversed:"Route reversed.", routeUndo:"Deleted the last route point.", routeSelected:"Route point selected.", routeInserted:"Inserted a new route point.",
+    routeNoDistance:"Add at least 2 route points to show estimated time.",
     summarySearchHistory:"Recent searches", tabHelp:"Suggestions", tabActivity:"Activity log", tabAdvanced:"Advanced", diagnosisIdle:"Click Help me check to list the most likely next steps.",
     buttonCopyActivity:"Copy history", buttonClearActivity:"Clear", buttonLog:"View connection log", labelRsdHost:"RSD Host", labelRsdPort:"RSD Port",
     labelMode:"Mode", optionAuto:"Auto", optionRsd:"RSD only", optionLegacy:"Legacy", advancedHint:"Auto is best for normal use. Change this only when troubleshooting iOS or pymobiledevice3 behavior.",
@@ -369,7 +505,16 @@ function applyLanguage() {
   });
   refreshBadgeText();
   renderSearchHistory();
+  renderRoute();
   refreshIcons();
+}
+function showWorkflow(name) {
+  const isRoute = name === "route";
+  $("workflowSingle").classList.toggle("active", !isRoute);
+  $("workflowRoute").classList.toggle("active", isRoute);
+  $("workflowSingleTab").classList.toggle("active", !isRoute);
+  $("workflowRouteTab").classList.toggle("active", isRoute);
+  setTimeout(() => map.invalidateSize(), 0);
 }
 function refreshIcons() {
   if (window.lucide && typeof window.lucide.createIcons === "function") {
@@ -380,6 +525,11 @@ function status(message, state="warn") {
   $("statusTitle").textContent = message;
   $("overallBadge").textContent = state === true ? t("badgeReady") : state === false ? t("badgeFailed") : t("badgeChecking");
   $("overallBadge").className = "badge " + (state === true ? "ok" : state === false ? "bad" : "warn");
+}
+function setRouteProgress(progress) {
+  const pct = Math.max(0, Math.min(100, Math.round((Number(progress) || 0) * 100)));
+  $("routeProgress").style.width = `${pct}%`;
+  $("routeProgressWalker").style.left = `${pct}%`;
 }
 function setStep(rowId, badgeId, value, tone) {
   const row = $(rowId);
@@ -586,11 +736,33 @@ async function refreshSessionStatus(silent=true) {
   setStep("stepSession", "sessionBadge", data.active ? "active" : "inactive", data.active ? "ok" : "warn");
   return data.active;
 }
+async function refreshRouteStatus(silent=true) {
+  const data = await get("/api/location/route", silent);
+  if (!data) return;
+  const progress = Math.max(0, Math.min(1, data.progress || 0));
+  setRouteProgress(progress);
+  if (data.active) {
+    const traveled = Math.round(data.traveled_m || 0);
+    const total = Math.round(data.total_distance_m || 0);
+    $("routeStatus").textContent = `${t("routeProgress")}: ${Math.round(progress * 100)}% (${traveled} / ${total} m)`;
+    if (Number.isFinite(data.lat) && Number.isFinite(data.lon)) {
+      updateMarker(data.lat, data.lon, false);
+    }
+  } else if (data.reason === "completed") {
+    $("routeStatus").textContent = `${t("routeProgress")}: 100%`;
+    setRouteProgress(1);
+  } else if (data.error) {
+    $("routeStatus").textContent = friendlyBackendText(data.error);
+  } else if (!routePoints.length) {
+    $("routeStatus").textContent = routePlanning ? t("routePlanning") : t("routeHint");
+  }
+}
 async function refreshAll() {
   status(t("statusChecking"));
   await refreshDevices();
   const tunnelOk = await refreshTunnel(true);
   if (tunnelOk) await autoMountImage();
+  await refreshRouteStatus(true);
   await refreshSessionStatus(true);
   updateOverallStatus();
 }
@@ -616,15 +788,47 @@ async function searchLocation() {
     const place = items[0];
     const lat = parseFloat(place.lat);
     const lon = parseFloat(place.lon);
-    $("lat").value = lat.toFixed(6);
-    $("lon").value = lon.toFixed(6);
-    updateMarker(lat, lon, true);
+    setRouteInputs(lat, lon, true);
     status(place.display_name, true);
     log({ ok:true, place:place.display_name, lat, lon });
   } catch (err) {
     status(t("searchFail"), false);
     log({ ok:false, error:err.message });
   }
+}
+function locateBrowserCurrent() {
+  if (!navigator.geolocation) {
+    status(t("myLocationDenied"), false);
+    $("myLocationStatus").textContent = t("myLocationDenied");
+    return;
+  }
+  status(t("myLocationLoading"));
+  $("myLocationStatus").textContent = t("myLocationLoading");
+  navigator.geolocation.getCurrentPosition(
+    position => {
+      const lat = Number(position.coords.latitude.toFixed(6));
+      const lon = Number(position.coords.longitude.toFixed(6));
+      const accuracy = position.coords.accuracy || 0;
+      setRouteInputs(lat, lon, true);
+      if (currentLocationCircle) currentLocationCircle.remove();
+      currentLocationCircle = L.circle([lat, lon], {
+        radius: accuracy,
+        color: "#185adb",
+        weight: 1,
+        fillColor: "#185adb",
+        fillOpacity: 0.08
+      }).addTo(map);
+      const message = `${t("myLocationLoaded")} ${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+      $("myLocationStatus").textContent = accuracy ? `${message} (${Math.round(accuracy)} m)` : message;
+      status(message, true);
+    },
+    error => {
+      const message = error && error.message ? `${t("myLocationDenied")} ${error.message}` : t("myLocationDenied");
+      $("myLocationStatus").textContent = message;
+      status(message, false);
+    },
+    { enableHighAccuracy:true, timeout:10000, maximumAge:30000 }
+  );
 }
 async function setLocation() {
   await refreshAll();
@@ -643,7 +847,7 @@ async function setLocation() {
   log(data);
   if (data.ok) {
     setStep("stepSession", "sessionBadge", "active", "ok");
-    updateMarker(body.lat, body.lon, true);
+    setRouteInputs(body.lat, body.lon, true);
     status(`${t("locationActive")}: ${body.lat.toFixed(6)}, ${body.lon.toFixed(6)}`, true);
     updateOverallStatus();
   }
@@ -653,6 +857,254 @@ async function stopSession() {
   setStep("stepSession", "sessionBadge", "inactive", "warn");
   if (data.ok) status(t("sessionStopped"), true);
   updateOverallStatus();
+}
+function routeDistanceMeters() {
+  let total = 0;
+  for (let i = 0; i < routePoints.length - 1; i++) {
+    total += map.distance([routePoints[i].lat, routePoints[i].lon], [routePoints[i + 1].lat, routePoints[i + 1].lon]);
+  }
+  return total;
+}
+function currentWalkSpeedKmh() {
+  return parseFloat($("walkSpeed").value);
+}
+function formatDistance(meters) {
+  if (!Number.isFinite(meters) || meters <= 0) return "0 m";
+  if (meters >= 1000) return `${(meters / 1000).toFixed(meters >= 10000 ? 1 : 2)} km`;
+  return `${Math.round(meters)} m`;
+}
+function formatDuration(seconds) {
+  if (!Number.isFinite(seconds) || seconds <= 0) return "--";
+  const total = Math.round(seconds);
+  const hours = Math.floor(total / 3600);
+  const minutes = Math.floor((total % 3600) / 60);
+  const secs = total % 60;
+  if (hours > 0) return `${hours} h ${minutes} min`;
+  if (minutes > 0) return `${minutes} min ${secs} sec`;
+  return `${secs} sec`;
+}
+function routeEtaSeconds(distanceMeters = routeDistanceMeters()) {
+  const speedKmh = currentWalkSpeedKmh();
+  if (!Number.isFinite(speedKmh) || speedKmh <= 0 || distanceMeters <= 0) return null;
+  return distanceMeters / (speedKmh / 3.6);
+}
+function updateRouteSummary(distanceMeters = routeDistanceMeters()) {
+  if (!$("routeDistanceValue") || !$("routeEtaValue")) return;
+  $("routeDistanceValue").textContent = formatDistance(distanceMeters);
+  $("routeEtaValue").textContent = formatDuration(routeEtaSeconds(distanceMeters));
+}
+function routePreviewText() {
+  if (routePoints.length < 2) return "";
+  const first = routePoints[0];
+  const last = routePoints[routePoints.length - 1];
+  return `${t("routePoint")} 1: ${first.lat.toFixed(6)}, ${first.lon.toFixed(6)} | ${t("routePoint")} ${routePoints.length}: ${last.lat.toFixed(6)}, ${last.lon.toFixed(6)}`;
+}
+function setWalkSpeed(speedKmh) {
+  $("walkSpeed").value = speedKmh;
+  renderRoute();
+}
+function toggleRoutePlanning() {
+  routePlanning = !routePlanning;
+  $("routeStatus").textContent = routePlanning ? t("routePlanning") : t("routeHint");
+  renderRoute();
+}
+function addRoutePoint(lat, lon) {
+  routePoints.push({ lat:Number(lat), lon:Number(lon) });
+  renderRoute();
+}
+function midpoint(a, b) {
+  return {
+    lat:(a.lat + b.lat) / 2,
+    lon:(a.lon + b.lon) / 2
+  };
+}
+function insertRoutePoint(index, lat, lon) {
+  routePoints.splice(index + 1, 0, { lat:Number(lat), lon:Number(lon) });
+  setRouteInputs(Number(lat), Number(lon), false);
+  $("routeStatus").textContent = t("routeInserted");
+  renderRoute();
+}
+function setRouteInputs(lat, lon, recenter=true) {
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return;
+  $("routeLat").value = lat.toFixed(6);
+  $("routeLon").value = lon.toFixed(6);
+  $("lat").value = lat.toFixed(6);
+  $("lon").value = lon.toFixed(6);
+  updateMarker(lat, lon, recenter);
+}
+function addCurrentPointToRoute() {
+  const lat = parseFloat($("routeLat").value);
+  const lon = parseFloat($("routeLon").value);
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+    status("Latitude / longitude is invalid.", false);
+    return;
+  }
+  addRoutePoint(lat, lon);
+}
+function removeRoutePoint(index) {
+  routePoints.splice(index, 1);
+  renderRoute();
+}
+function selectRoutePoint(index, recenter=true) {
+  const point = routePoints[index];
+  if (!point) return;
+  setRouteInputs(point.lat, point.lon, recenter);
+  $("routeStatus").textContent = `${t("routeSelected")} ${t("routePoint")} ${index + 1}`;
+}
+function undoRoutePoint() {
+  if (!routePoints.length) return;
+  routePoints.pop();
+  $("routeStatus").textContent = t("routeUndo");
+  renderRoute();
+}
+function reverseRoute() {
+  if (routePoints.length < 2) return;
+  routePoints.reverse();
+  $("routeStatus").textContent = t("routeReversed");
+  renderRoute();
+}
+function clearRoute() {
+  routePoints = [];
+  setRouteProgress(0);
+  $("routeStatus").textContent = t("routeCleared");
+  renderRoute();
+}
+function renderRoute() {
+  if (!$("routeList") || !window.L || !map) return;
+  routeMarkers.forEach(item => item.remove());
+  routeMarkers = [];
+  routeInsertMarkers.forEach(item => item.remove());
+  routeInsertMarkers = [];
+  if (routeLine) {
+    routeLine.remove();
+    routeLine = null;
+  }
+
+  routePoints.forEach((point, index) => {
+    const markerIcon = L.divIcon({
+      className:"route-waypoint-marker",
+      html:`<span>${index + 1}</span>`,
+      iconSize:[28, 28],
+      iconAnchor:[14, 14]
+    });
+    const waypoint = L.marker([point.lat, point.lon], { draggable:true, icon:markerIcon }).addTo(map);
+    waypoint.on("click", () => selectRoutePoint(index, false));
+    waypoint.on("dragend", event => {
+      const latLng = event.target.getLatLng();
+      routePoints[index] = {
+        lat:Number(latLng.lat.toFixed(6)),
+        lon:Number(latLng.lng.toFixed(6))
+      };
+      selectRoutePoint(index, false);
+      renderRoute();
+    });
+    routeMarkers.push(waypoint);
+  });
+
+  if (routePoints.length > 1) {
+    routeLine = L.polyline(routePoints.map(p => [p.lat, p.lon]), { color:"#185adb", weight:4, opacity:.85 }).addTo(map);
+    for (let index = 0; index < routePoints.length - 1; index += 1) {
+      const mid = midpoint(routePoints[index], routePoints[index + 1]);
+      const insertIcon = L.divIcon({
+        className:"route-insert-marker",
+        html:"<span>+</span>",
+        iconSize:[22, 22],
+        iconAnchor:[11, 11]
+      });
+      const insertMarker = L.marker([mid.lat, mid.lon], { draggable:true, icon:insertIcon }).addTo(map);
+      insertMarker.on("click", () => insertRoutePoint(index, Number(mid.lat.toFixed(6)), Number(mid.lon.toFixed(6))));
+      insertMarker.on("dragend", event => {
+        const latLng = event.target.getLatLng();
+        insertRoutePoint(index, Number(latLng.lat.toFixed(6)), Number(latLng.lng.toFixed(6)));
+      });
+      routeInsertMarkers.push(insertMarker);
+    }
+  }
+
+  $("routeEditButton").classList.toggle("secondary", !routePlanning);
+  $("routeEditButton").querySelector("span").textContent = routePlanning ? t("buttonStopPlanning") : t("buttonPlanRoute");
+  const total = routeDistanceMeters();
+  updateRouteSummary(total);
+  $("routeList").innerHTML = routePoints.map((point, index) => `
+    <div class="route-item">
+      <span class="route-index">${index + 1}</span>
+      <button class="route-item-main" onclick="selectRoutePoint(${index})">${t("routePoint")} ${index + 1}: ${point.lat.toFixed(6)}, ${point.lon.toFixed(6)}</button>
+      <button class="secondary route-remove" onclick="removeRoutePoint(${index})" aria-label="Remove route point"><i data-lucide="x" class="icon icon-sm" aria-hidden="true"></i></button>
+    </div>
+  `).join("");
+  if (routePoints.length) {
+    const routeSummary = `${routePoints.length} ${t("routePoint")} / ${formatDistance(total)} / ${formatDuration(routeEtaSeconds(total))}`;
+    $("routeStatus").textContent = routePlanning
+      ? `${t("routePlanning")} ${formatDistance(total)}`
+      : routeSummary;
+  } else {
+    $("routeStatus").textContent = routePlanning ? t("routePlanning") : t("routeNoDistance");
+  }
+  refreshIcons();
+}
+async function buildWalkRouteRequest() {
+  await refreshAll();
+  if (!tunnel) { status(t("startTunnelFirst"), false); return null; }
+  if (badgeValue("mountBadge") !== "mounted" && !(await autoMountImage())) return null;
+  if (routePoints.length < 2) {
+    status(t("routeNeedPoints"), false);
+    return null;
+  }
+  const speedKmh = currentWalkSpeedKmh();
+  const interval = parseFloat($("walkInterval").value);
+  if (!Number.isFinite(speedKmh) || speedKmh <= 0 || !Number.isFinite(interval) || interval < 0.5) {
+    status(t("routeInvalidSpeed"), false);
+    return null;
+  }
+  return {
+    points: routePoints.map(point => ({ lat:point.lat, lon:point.lon })),
+    speed_kmh: speedKmh,
+    interval_sec: interval,
+    mode: $("mode").value,
+    rsd_host: tunnel.host,
+    rsd_port: tunnel.port
+  };
+}
+async function startWalkRoute() {
+  const body = await buildWalkRouteRequest();
+  if (!body) return;
+  pendingWalkRoute = body;
+  const distance = routeDistanceMeters();
+  $("previewDistance").textContent = formatDistance(distance);
+  $("previewEta").textContent = formatDuration(routeEtaSeconds(distance));
+  $("previewSpeed").textContent = `${body.speed_kmh} km/h`;
+  $("previewPoints").textContent = String(body.points.length);
+  $("previewRouteText").textContent = routePreviewText();
+  $("routePreviewModal").classList.add("open");
+  refreshIcons();
+}
+function closeRoutePreview() {
+  $("routePreviewModal").classList.remove("open");
+}
+async function confirmStartWalkRoute() {
+  if (!pendingWalkRoute) return;
+  closeRoutePreview();
+  const data = await post("/api/location/route/start", pendingWalkRoute, true);
+  log(data);
+  if (data.ok) {
+    routePlanning = false;
+    pendingWalkRoute = null;
+    renderRoute();
+    setStep("stepSession", "sessionBadge", "active", "ok");
+    status(t("routeStarted"), true);
+    await refreshRouteStatus(true);
+    updateOverallStatus();
+  }
+}
+async function stopWalkRoute() {
+  const data = await post("/api/location/route/stop", null, true);
+  log(data);
+  if (data.ok) {
+    setStep("stepSession", "sessionBadge", "inactive", "warn");
+    $("routeStatus").textContent = t("routeStopped");
+    status(t("routeStopped"), true);
+    updateOverallStatus();
+  }
 }
 async function clearLocation() {
   await refreshTunnel(true);
@@ -722,7 +1174,7 @@ function searchHistoryClick(query) {
   searchLocation();
 }
 function escapeHtml(text) {
-  return text.replace(/[&<>"']/g, ch => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#039;" }[ch]));
+  return String(text).replace(/[&<>"']/g, ch => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#039;" }[ch]));
 }
 function updateMarker(lat, lon, recenter=true) {
   if (!Number.isFinite(lat) || !Number.isFinite(lon)) return;
@@ -732,12 +1184,31 @@ function updateMarker(lat, lon, recenter=true) {
   if (recenter) map.setView([lat, lon], Math.max(map.getZoom(), 15), { animate:true });
 }
 function syncMarkerFromInputs() {
-  updateMarker(parseFloat($("lat").value), parseFloat($("lon").value), true);
+  const lat = parseFloat($("lat").value);
+  const lon = parseFloat($("lon").value);
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return;
+  $("routeLat").value = lat.toFixed(6);
+  $("routeLon").value = lon.toFixed(6);
+  updateMarker(lat, lon, true);
+}
+function syncRouteInputsFromWaypoint() {
+  const lat = parseFloat($("routeLat").value);
+  const lon = parseFloat($("routeLon").value);
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return;
+  setRouteInputs(lat, lon, true);
 }
 function bindInputSync() {
   ["lat","lon"].forEach(id => {
     $(id).addEventListener("change", syncMarkerFromInputs);
     $(id).addEventListener("keydown", event => { if (event.key === "Enter") syncMarkerFromInputs(); });
+  });
+  ["routeLat","routeLon"].forEach(id => {
+    $(id).addEventListener("change", syncRouteInputsFromWaypoint);
+    $(id).addEventListener("keydown", event => { if (event.key === "Enter") syncRouteInputsFromWaypoint(); });
+  });
+  ["walkSpeed","walkInterval"].forEach(id => {
+    $(id).addEventListener("input", renderRoute);
+    $(id).addEventListener("change", renderRoute);
   });
   $("searchText").addEventListener("keydown", event => { if (event.key === "Enter") searchLocation(); });
 }
@@ -749,11 +1220,10 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
 map.on("click", e => {
   const lat = Number(e.latlng.lat.toFixed(6));
   const lon = Number(e.latlng.lng.toFixed(6));
-  $("lat").value = lat;
-  $("lon").value = lon;
-  updateMarker(lat, lon, true);
+  setRouteInputs(lat, lon, true);
+  if (routePlanning) addRoutePoint(lat, lon);
 });
-updateMarker(25.033964, 121.564468, true);
+setRouteInputs(25.033964, 121.564468, true);
 bindInputSync();
 applyLanguage();
 refreshAll();

@@ -1,4 +1,3 @@
-\
 #!/usr/bin/env python3
 """
 Start pymobiledevice3 TCP tunnel, parse the emitted --rsd HOST PORT,

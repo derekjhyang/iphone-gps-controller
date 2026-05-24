@@ -17,15 +17,7 @@ doctor:
 	.venv/bin/python scripts/doctor.py
 
 run:
-	mkdir -p .runtime
-	@if pgrep -f "tunnel_helper.py" >/dev/null 2>&1; then \
-		echo "Tunnel helper already running"; \
-	else \
-		echo "Starting tunnel helper in background..."; \
-		sudo -E .venv/bin/python tunnel_helper.py > .runtime/tunnel.log 2>&1 & \
-		echo $$! > .runtime/tunnel.pid; \
-	fi
-	uv run uvicorn app.main:app --host 127.0.0.1 --port 8787 --reload
+	@bash scripts/run-local.sh
 
 # Keep this running on the macOS host in a second terminal.
 # It writes .runtime/rsd.json for the Dockerized Web UI.
