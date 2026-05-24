@@ -1,10 +1,10 @@
 # iPhone GPS Controller - uv + Python 3.13 版本
 
-這是一個針對 macOS 的 iPhone GPS 模擬 Web UI，使用 `pymobiledevice3` 與 FastAPI 提供圖形化控制介面。它專門為 iOS 17/18 的 RSD tunnel 路徑設計，避免 macOS 系統 Python 3.9 / LibreSSL 的相容性問題。
+這是一個針對 macOS 的 iPhone GPS 模擬 Web UI，使用 `pymobiledevice3` 與 FastAPI 提供圖形化控制介面。它專為 iOS 17/18 的 RSD tunnel 路徑設計，避免 macOS 系統 Python 3.9 / LibreSSL 的相容性問題。
 
 ## 先決條件：開啟 iPhone 開發者模式
 
-在使用本專案前，必須先在 iPhone 上手動開啟開發者模式。
+在使用本專案前，必須先在 iPhone 上手動啟用開發者模式。
 
 ### iOS 17/18 的通用步驟
 
@@ -21,7 +21,7 @@
 1. 連接 iPhone 到 macOS
 2. 開啟 iPhone「設定」
 3. 使用設定搜尋框輸入「Developer Mode」或「開發者模式」
-4. 若未顯示，請確認已插連 USB 並信任這台電腦
+4. 若未顯示，請確認已插連 USB 並信任此電腦
 5. 進入「隱私與安全」或「開發者」選單，啟用「開發者模式」
 6. 若系統要求重開機，請照指示重啟並重新解鎖 iPhone
 
@@ -37,19 +37,20 @@
 
 ## 安裝與準備
 
-### 1. 安裝 uv 與本地執行環境
+### 1. 安裝依賴
 
 ```bash
 brew install uv
 make install
 ```
 
-這會執行：
+這會建立 `uv` 虛擬環境並安裝所需套件：
 
 ```bash
 uv python install 3.13
 uv venv --python 3.13
 uv sync
+uv pip install -U pymobiledevice3
 ```
 
 ### 2. 驗證環境
@@ -71,15 +72,14 @@ make doctor
 
 ### 快速開始（推薦）
 
-只需一條指令：
-
 ```bash
 make start
 ```
 
-此命令會自動執行以下操作：
+此命令會：
+
 - 檢查必要依賴
-- 啟動 macOS Tunnel helper（背景運行）
+- 啟動 macOS Tunnel helper（背景執行）
 - 啟動 Docker Web UI
 - 等待服務就緒
 - 自動打開瀏覽器
@@ -92,25 +92,17 @@ make stop
 
 ### 手動啟動（進階）
 
-如果需要分步操作或除錯，可使用以下命令：
-
-#### 本機 Web UI（會自動嘗試啟動 tunnel）
+#### 本機 Web UI
 
 ```bash
 make run
 ```
 
-使用本機 FastAPI Web UI 時，Web 服務啟動後會自動嘗試啟動 `tunnel_helper.py`。若 macOS 權限或環境限制導致自動啟動失敗，Web UI 會顯示備援指令。
+這會啟動本機 FastAPI Web UI，並嘗試自動啟動 `tunnel_helper.py`。若自動啟動失敗，Web UI 會顯示備援指令。
 
 #### Docker Web UI
 
-Docker Desktop 在 macOS 上無法穩定存取 USB iPhone，因此 Docker 模式仍需要 macOS host 端的 tunnel helper。建議直接使用：
-
-```bash
-make start
-```
-
-若要分步操作：
+由於 Docker Desktop 在 macOS 上無法穩定存取 USB iPhone，Docker 模式仍需要在 macOS host 端執行 tunnel helper。
 
 ##### 1) 啟動 Web UI
 
@@ -126,21 +118,28 @@ http://127.0.0.1:8787
 
 ##### 2) 啟動 macOS Tunnel helper
 
-在第二個終端機執行：
-
 ```bash
 make tunnel
 ```
 
 此程序必須保持開啟。
-
 它會解析 iPhone 連線資訊，並將結果寫入：
 
 ```text
 .runtime/rsd.json
 ```
 
-Docker container 的 Web UI 透過 bind mount 讀取此檔案。
+Docker container 的 Web UI 會透過 bind mount 讀取此檔案。
+
+## 常用命令
+
+- `make doctor`：檢查 Python 與 `pymobiledevice3`。
+- `make tunnel-status`：查看 `.runtime/rsd.json` 目前狀態。
+- `make tunnel-log`：追蹤 tunnel helper 日誌。
+- `make docker-logs`：追蹤 Docker Web UI 日誌。
+- `make docker-rebuild`：重新建立 Docker 映像。
+- `make clean-runtime`：刪除 `.runtime/rsd.json` 與 `.runtime/tunnel.log`。
+- `make install-brew-python`：若不想使用 `uv`，改用 Homebrew Python 3.13。
 
 ## 使用流程
 
@@ -151,10 +150,7 @@ Docker container 的 Web UI 透過 bind mount 讀取此檔案。
 
 ### 啟動服務
 
-3. `make start` （自動完成下列步驟）
-   - 啟動 Tunnel helper
-   - 啟動 Docker Web UI
-   - 打開瀏覽器
+3. `make start`
 
 ### 操作 GPS 模擬
 
@@ -164,11 +160,11 @@ Docker container 的 Web UI 透過 bind mount 讀取此檔案。
 
 ### 停止服務
 
-7. `make stop` （停止所有服務）
+7. `make stop`
 
-## macOS 與 Docker 模式說明
+## 運作方式
 
-由於 Docker Desktop 在 macOS 上無法穩定存取 USB iPhone 與 Apple 開發者服務，因此採用混合方式：
+這個專案採用混合架構：
 
 - Docker container：FastAPI Web UI
 - macOS host：`pymobiledevice3` tunnel helper
@@ -195,6 +191,11 @@ flowchart LR
 - 若出現「Developer Mode is not enabled」：請確認 iPhone 已開啟開發者模式並重新啟動。
 - 若出現「No usable iPhone connection」：請解鎖 iPhone、信任此電腦、重新插拔 USB。
 - 若出現 `SSLError: No cipher can be selected`：請確認使用 `uv` + Python 3.13，而非系統 Python 3.9。
+- 若 `make start` 失敗：請先單獨執行 `make tunnel`，確保 `.runtime/rsd.json` 已建立。
+
+## 授權條款
+
+本專案採用 MIT 授權，詳見專案根目錄中的 `LICENSE` 檔案。
 
 ## 其他備選
 

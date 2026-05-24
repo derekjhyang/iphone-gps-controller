@@ -1,0 +1,20 @@
+# Git commit message template
+#
+# Use this template for conventional-style commit messages.
+# Remove the commented lines and replace with your own commit text.
+# Example:
+# feat(web): add tunnel status endpoint
+#
+# Body:
+# - explain what changed and why
+# - mention any related files, bugs, or workarounds
+#
+# Footer:
+# BREAKING CHANGE: description of the breaking change
+# Fixes: #123
+
+<type>(<scope>): <subject>
+
+<body>
+
+<footer>
