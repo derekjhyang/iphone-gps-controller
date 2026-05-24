@@ -7,12 +7,22 @@ ENV AUTO_START_TUNNEL=0
 WORKDIR /app
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates curl \
+    && apt-get install -y --no-install-recommends \
+        ca-certificates \
+        curl \
+        build-essential \
+        gcc \
+        pkg-config \
+        libffi-dev \
+        libssl-dev \
+        python3-dev \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt /app/requirements.txt
 RUN python -m pip install --upgrade pip \
-    && pip install --no-cache-dir -r /app/requirements.txt
+    && pip install --no-cache-dir -r /app/requirements.txt \
+    && apt-get purge -y --auto-remove build-essential gcc pkg-config python3-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY app /app/app
 
