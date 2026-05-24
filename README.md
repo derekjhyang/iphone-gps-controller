@@ -1,31 +1,23 @@
-# iPhone GPS Controller - uv + Python 3.13 版本
+# iPhone GPS Controller — uv + Python 3.13
 
-這是一個針對 macOS 的 iPhone GPS 模擬 Web UI，使用 `pymobiledevice3` 與 FastAPI 提供圖形化控制介面。它專為 iOS 17/18 的 RSD tunnel 路徑設計，避免 macOS 系統 Python 3.9 / LibreSSL 的相容性問題。
+macOS 上的 iPhone GPS 模擬 Web UI，使用 pymobiledevice3 與 FastAPI。專為 iOS 17/18 的 RSD tunnel 設計，可避免系統 Python 3.9 / LibreSSL 的相容性問題。
 
-## 先決條件：開啟 iPhone 開發者模式
+## 先決條件：啟用 iPhone 開發者模式
 
-在使用本專案前，必須先在 iPhone 上手動啟用開發者模式。
+使用前請在 iPhone 上啟用開發者模式。
 
-### iOS 17/18 的通用步驟
-
-1. 連接 iPhone 到 macOS
-2. 開啟 iPhone「設定」
-3. 進入「隱私與安全」
-4. 開啟「開發者模式」
-5. 若系統要求重開機，請照指示重啟並重新解鎖 iPhone
-
-### iOS 26 的步驟
-
-在 iOS 26 上，開發者模式的顯示方式可能和舊版略有不同，請參考以下步驟：
+### iOS 17/18
 
 1. 連接 iPhone 到 macOS
-2. 開啟 iPhone「設定」
-3. 使用設定搜尋框輸入「Developer Mode」或「開發者模式」
-4. 若未顯示，請確認已插連 USB 並信任此電腦
-5. 進入「隱私與安全」或「開發者」選單，啟用「開發者模式」
-6. 若系統要求重開機，請照指示重啟並重新解鎖 iPhone
+2. 開啟「設定」→「隱私與安全」
+3. 啟用「開發者模式」
+4. 若系統要求重啟，請重啟並重新解鎖 iPhone
 
-> Apple 要求在裝置上明確授權開發者模式，工具無法自動完成此步驟。
+### iOS 26（若適用）
+
+若在 iOS 26 找不到開發者選項，請在設定內搜尋 "Developer Mode"，並確認已插入 USB 並且已信任該電腦。
+
+注意：Apple 要求在裝置上明確授權開發者模式，無法由工具自動完成。
 
 ## 專案特色
 
