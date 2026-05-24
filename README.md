@@ -165,18 +165,41 @@ Docker container 的 Web UI 會透過 bind mount 讀取此檔案。
 ## 專案架構圖
 
 ```mermaid
-flowchart LR
-  Browser[Browser UI] -->|HTTP<br>127.0.0.1:8787| Web[FastAPI Web UI]
-  Web -->|Serves static files| Browser
-  Web -->|Reads/Writes| RSD[.runtime/rsd.json]
-  Web -->|Runs pymobiledevice3 commands| Pymd[pymobiledevice3]
-  Host[macOS host] -->|runs| TunnelHelper[tunnel_helper.py]
-  TunnelHelper -->|writes| RSD
-  TunnelHelper -->|USB| iPhone[iPhone]
-  IPhoneDev[iPhone Developer Mode] -.-> iPhone
+flowchart TD
+  Browser[Browser UI]
+  Web[FastAPI Web UI]
+  Pymd[pymobiledevice3]
+  RSD[.runtime/rsd.json]
+  IPhoneDev[iPhone Developer Mode]
+  iPhone[iPhone]
+
+  Browser -->|HTTP 127.0.0.1:8787| Web
+  Web -->|Serves static files & API| Browser
+  Web -->|Reads/Writes| RSD
+  Web -->|Invokes| Pymd
+
+  subgraph HostEnv [macOS host]
+    TunnelHelper[tunnel_helper.py]
+    Tunneld["TCP tunnel (HOST:PORT)"]
+    TunnelHelper -->|starts remote start-tunnel| Tunneld
+    TunnelHelper -->|writes| RSD
+    TunnelHelper -->|USB| iPhone
+  end
+
+  Web -->|container: read RSD and use --rsd| Tunneld
+  IPhoneDev -.-> iPhone
   classDef box fill:#f3f4f6,stroke:#d1d5db,color:#111827;
-  class Browser,Web,RSD,Pymd,Host,TunnelHelper,iPhone,IPhoneDev box;
+  class Browser,Web,RSD,Pymd,HostEnv,TunnelHelper,iPhone,IPhoneDev box;
 ```
+
+## Tunnel 工作原理
+
+- `tunnel_helper.py` 在 macOS 主機上執行，使用 `pymobiledevice3 remote start-tunnel` 建立一個 TCP 轉發（HOST:PORT），將裝置的開發者服務暴露出來；該程序通常需要 sudo 權限與已信任的 iPhone。
+- 啟動後，helper 會把可連線的 HOST/PORT 寫入 `.runtime/rsd.json`，供 Web UI 或 Docker container 讀取。
+- Web UI 發出需要連到裝置的命令（例如 `simulate-location`）時，會使用 `pymobiledevice3 ... --rsd HOST PORT` 指向該 TCP 隧道。當 Web UI 在 Docker container 中運行時，container 本身無法直接存取 USB，因此依賴主機上運行的 tunnel helper。
+- 在本機模式（非 container）時，Web UI 也可嘗試由服務端啟動 tunnel helper（參見 `start_tunnel` API），但在 Docker 模式下通常會顯示備援指令，提示在主機上手動啟動 `make tunnel`。
+
+提醒：tunnel 與模擬操作會要求裝置處於已信任狀態並啟用 Developer Mode，且某些操作可能需要輸入 sudo 密碼或系統權限。
 
 ## 常見問題
 
