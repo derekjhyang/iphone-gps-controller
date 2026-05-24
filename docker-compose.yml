@@ -1,0 +1,15 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: iphone-gps-controller-web
+    ports:
+      - "8787:8787"
+    volumes:
+      # tunnel_helper runs on the macOS host and writes .runtime/rsd.json.
+      # The container reads the same file through this bind mount.
+      - ./.runtime:/app/.runtime
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped

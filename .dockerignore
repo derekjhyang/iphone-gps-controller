@@ -1,0 +1,47 @@
+# Version control
+.git
+.gitignore
+.gitattributes
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.egg-info
+.Python
+.venv
+venv
+env
+
+# Runtime
+.runtime
+*.log
+*.pid
+
+# IDE
+.vscode
+.idea
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Development
+Makefile
+.env.example
+scripts/
+
+# Documentation
+README.md
+*.md
+
+# Testing
+.pytest_cache
+.coverage
+htmlcov
+
+# Docker
+docker-compose.yml
+docker-compose.override.yml
+Dockerfile.dev

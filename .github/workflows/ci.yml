@@ -1,0 +1,79 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  python-check:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.13']
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install uv
+      uses: astral-sh/setup-uv@v2
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      run: uv python install ${{ matrix.python-version }}
+    
+    - name: Create virtual environment and sync
+      run: |
+        uv venv
+        uv sync
+    
+    - name: Lint with flake8
+      run: |
+        uv run pip install flake8
+        uv run flake8 app tunnel_helper.py --count --select=E9,F63,F7,F82 --show-source --statistics
+        uv run flake8 app tunnel_helper.py --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+      continue-on-error: true
+    
+    - name: Check code formatting with black
+      run: |
+        uv run pip install black
+        uv run black --check app tunnel_helper.py
+      continue-on-error: true
+
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Build Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: false
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+  dependency-check:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Check Python dependencies
+      run: |
+        if [ -f requirements.txt ]; then
+          echo "Checking requirements.txt..."
+          while IFS= read -r line; do
+            if [[ ! "$line" =~ ^# ]] && [[ ! -z "$line" ]]; then
+              echo "  - $line"
+            fi
+          done < requirements.txt
+          echo "Dependencies listed in requirements.txt"
+        fi
+    
+    - name: Check pyproject.toml
+      run: |
+        if [ -f pyproject.toml ]; then
+          echo "✓ pyproject.toml found"
+        fi

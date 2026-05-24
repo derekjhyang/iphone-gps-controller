@@ -1,0 +1,763 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <title>iPhone GPS Controller</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    :root {
+      --bg:#f7f8fb; --panel:#ffffff; --text:#172033; --muted:#667085; --line:#dfe4ea;
+      --soft:#f1f5f9; --primary:#185adb; --primary-strong:#1248b3; --good:#0f7a4f;
+      --good-bg:#e7f7ef; --bad:#b42318; --bad-bg:#fdecec; --warn:#986400; --warn-bg:#fff4d6;
+      --focus:0 0 0 3px rgba(24,90,219,.18);
+    }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; background:var(--bg); color:var(--text); }
+    button, input, select { font:inherit; }
+    button { min-height:42px; border:0; border-radius:8px; padding:10px 14px; cursor:pointer; background:var(--primary); color:#fff; font-weight:700; }
+    button { display:inline-flex; align-items:center; justify-content:center; gap:7px; }
+    button:hover { background:var(--primary-strong); }
+    button.secondary { background:#eef2f7; color:#172033; border:1px solid #d6dde7; }
+    button.secondary:hover { background:#e3e9f2; }
+    button.danger { background:#b42318; }
+    button.danger:hover { background:#921f17; }
+    button:focus-visible, input:focus-visible, select:focus-visible { outline:none; box-shadow:var(--focus); border-color:var(--primary); }
+    input, select { width:100%; min-height:42px; border:1px solid #cfd7e3; border-radius:8px; padding:9px 11px; background:#fff; color:var(--text); }
+    label { display:block; margin:0 0 6px; color:#344054; font-size:13px; font-weight:700; }
+    pre { margin:0; white-space:pre-wrap; word-break:break-word; background:#111827; color:#e8eef7; border-radius:8px; padding:12px; max-height:250px; overflow:auto; font-size:12px; line-height:1.45; }
+    code { background:#eef2f7; border-radius:5px; padding:1px 5px; }
+    .shell { display:grid; grid-template-columns:minmax(390px, 500px) 1fr; height:100vh; overflow:hidden; }
+    .panel { height:100vh; background:var(--panel); border-right:1px solid var(--line); overflow:auto; }
+    .panel-inner { padding:18px; display:grid; gap:14px; }
+    .header-wrap { display:grid; gap:10px; }
+    .header { display:flex; align-items:flex-start; justify-content:space-between; gap:14px; }
+    h1 { margin:0; font-size:22px; letter-spacing:0; }
+    .subtitle { margin:5px 0 0; color:var(--muted); font-size:13px; line-height:1.45; }
+    .language { width:132px; flex:0 0 auto; }
+    .card { border:1px solid var(--line); border-radius:8px; background:#fff; padding:14px; }
+    .card h2, .support-body h2 { margin:0 0 10px; font-size:15px; display:flex; align-items:center; gap:7px; }
+    .hero-status { border-left:5px solid var(--warn); background:var(--warn-bg); }
+    .hero-status.ready { border-left-color:var(--good); background:var(--good-bg); }
+    .hero-status.blocked { border-left-color:var(--bad); background:var(--bad-bg); }
+    .status-title { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:5px; }
+    .status-title strong { font-size:16px; display:flex; align-items:center; gap:7px; min-width:0; }
+    .next-step { margin:0; color:#344054; font-size:14px; line-height:1.45; }
+    .badge { display:inline-flex; align-items:center; min-height:24px; border-radius:999px; padding:3px 9px; font-size:12px; font-weight:800; background:#eef2f7; color:#344054; white-space:nowrap; }
+    .badge.ok { background:var(--good-bg); color:var(--good); }
+    .badge.bad { background:var(--bad-bg); color:var(--bad); }
+    .badge.warn { background:var(--warn-bg); color:var(--warn); }
+    .steps { display:grid; gap:9px; }
+    .step-row { display:grid; grid-template-columns:26px 1fr auto; gap:10px; align-items:center; padding:10px; border:1px solid var(--line); border-radius:8px; background:#fbfcfe; }
+    .step-num { width:26px; height:26px; border-radius:50%; background:#d9e7ff; color:#103f91; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:13px; }
+    .step-row.ok .step-num { background:var(--good-bg); color:var(--good); }
+    .step-row.bad .step-num { background:var(--bad-bg); color:var(--bad); }
+    .step-row.warn .step-num { background:var(--warn-bg); color:var(--warn); }
+    .step-main { min-width:0; }
+    .step-main b { display:block; font-size:14px; }
+    .step-main span { display:block; margin-top:2px; color:var(--muted); font-size:12px; line-height:1.35; }
+    .actions { display:flex; flex-wrap:wrap; gap:8px; }
+    .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .search-row { display:grid; grid-template-columns:1fr 92px; gap:8px; }
+    .primary-wide { width:100%; min-height:48px; margin-top:10px; }
+    .muted { color:var(--muted); font-size:12px; line-height:1.45; margin:8px 0 0; }
+    .command-row { display:grid; grid-template-columns:1fr auto; gap:8px; align-items:center; }
+    .command { overflow:auto; min-height:42px; display:flex; align-items:center; background:#f6f8fb; border:1px solid #d6dde7; border-radius:8px; padding:9px 10px; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:13px; white-space:nowrap; }
+    .tabs { display:flex; gap:6px; padding:4px; background:#eef2f7; border-radius:8px; margin-bottom:10px; }
+    .tab { flex:1; min-height:36px; background:transparent; color:#344054; border-radius:6px; padding:7px 10px; }
+    .tab:hover { background:#dde6f2; }
+    .tab.active { background:#fff; color:#172033; box-shadow:0 1px 2px rgba(16,24,40,.08); }
+    .tab-panel { display:none; }
+    .tab-panel.active { display:block; }
+    .help-list { display:grid; gap:8px; margin-top:10px; }
+    .help-item { border:1px solid var(--line); border-radius:8px; padding:10px; background:#fbfcfe; }
+    .help-item b { display:block; font-size:13px; }
+    .help-item span { display:block; margin-top:3px; color:var(--muted); font-size:12px; line-height:1.4; }
+    .history-list { display:grid; gap:6px; margin-top:8px; }
+    .history-item { width:100%; min-height:36px; text-align:left; background:#fff; border:1px solid #d6dde7; border-radius:8px; padding:8px 10px; color:#172033; font-size:13px; cursor:pointer; justify-content:flex-start; }
+    .simple-steps { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:12px; }
+    .simple-step { border:1px solid var(--line); border-radius:8px; padding:10px; background:#fbfcfe; }
+    .simple-step b { display:flex; align-items:center; gap:6px; font-size:13px; }
+    .simple-step span { display:block; margin-top:3px; color:var(--muted); font-size:12px; line-height:1.35; }
+    .status-bar { min-height:32px; border-top:1px solid var(--line); border-bottom:1px solid var(--line); padding:7px 0; display:flex; align-items:center; justify-content:space-between; gap:10px; }
+    .status-bar-title { min-width:0; color:#667085; font-size:12px; font-weight:800; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-transform:uppercase; display:flex; align-items:center; gap:6px; }
+    .status-dots { display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+    .status-dot { width:26px; height:26px; border-radius:50%; border:1px solid #d6dde7; background:#eef2f7; color:#344054; display:inline-flex; align-items:center; justify-content:center; white-space:nowrap; cursor:help; }
+    .status-dot .icon { width:14px; height:14px; }
+    .status-dot.ok { background:var(--good-bg); border-color:#a7e4c5; color:var(--good); }
+    .status-dot.warn { background:var(--warn-bg); border-color:#f3d98b; color:var(--warn); }
+    .status-dot.bad { background:var(--bad-bg); border-color:#f3b4b0; color:var(--bad); }
+    .icon-button { width:42px; height:42px; min-height:42px; padding:0; border-radius:50%; }
+    .icon-button-sm { width:26px; height:26px; min-height:26px; }
+    .support-panel { border:1px solid var(--line); border-radius:8px; background:#fff; padding:0; overflow:hidden; }
+    .support-panel > summary { list-style:none; display:flex; align-items:center; justify-content:space-between; gap:10px; padding:13px 14px; cursor:pointer; font-size:15px; }
+    .support-panel > summary > span { display:flex; align-items:center; gap:7px; min-width:0; }
+    .support-panel > summary::-webkit-details-marker { display:none; }
+    .support-panel > summary::after { content:"+"; width:24px; height:24px; border-radius:50%; background:#eef2f7; display:flex; align-items:center; justify-content:center; color:#344054; font-weight:900; }
+    .support-panel[open] > summary::after { content:"-"; }
+    .support-body { border-top:1px solid var(--line); padding:14px; display:grid; gap:14px; }
+    .map-wrap { position:relative; min-height:100vh; }
+    #map { height:100vh; width:100%; }
+    .map-chip { position:absolute; top:14px; left:14px; z-index:500; max-width:min(420px, calc(100% - 28px)); background:rgba(255,255,255,.95); border:1px solid var(--line); border-radius:8px; padding:10px 12px; box-shadow:0 8px 24px rgba(16,24,40,.12); font-size:13px; color:#344054; }
+    details { margin-top:10px; border-top:1px solid var(--line); padding-top:10px; }
+    summary { cursor:pointer; font-weight:800; font-size:13px; color:#344054; }
+    .card details > summary { display:inline-flex; align-items:center; gap:6px; }
+    .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+    .icon { width:16px; height:16px; flex:0 0 auto; stroke-width:2.2; }
+    .icon-sm { width:14px; height:14px; }
+    @media (max-width:980px) {
+      .shell { grid-template-columns:1fr; height:auto; overflow:visible; }
+      .panel { height:auto; border-right:0; border-bottom:1px solid var(--line); }
+      .map-wrap { min-height:54vh; }
+      #map { height:54vh; }
+    }
+    @media (max-width:560px) {
+      .panel-inner { padding:14px; }
+      .header { display:grid; }
+      .language { width:100%; }
+      .grid-2, .search-row, .command-row { grid-template-columns:1fr; }
+      .simple-steps { grid-template-columns:1fr; }
+      .status-bar { align-items:flex-start; display:grid; }
+      .status-dots { justify-content:flex-start; }
+      .step-row { grid-template-columns:26px 1fr; }
+      .step-row .badge { grid-column:2; width:max-content; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside class="panel">
+      <div class="panel-inner">
+        <div class="header-wrap">
+          <header class="header">
+            <div>
+              <h1 data-i18n="appTitle">iPhone GPS 控制器</h1>
+              <p class="subtitle" data-i18n="subtitle">照著提示操作：接上手機、選地點、按設定。</p>
+            </div>
+            <div class="language">
+              <label for="languageSelect" data-i18n="labelLanguage">語言</label>
+              <select id="languageSelect" onchange="setLanguage(this.value)">
+                <option value="zh">中文</option>
+                <option value="en">English</option>
+              </select>
+            </div>
+          </header>
+          <div class="status-bar" aria-live="polite">
+            <div class="status-bar-title"><i data-lucide="activity" class="icon icon-sm" aria-hidden="true"></i><span data-i18n="healthTitle">系統檢查</span></div>
+            <div class="status-dots">
+              <span id="healthDeviceBadge" class="status-dot warn" data-status="unknown" data-icon="smartphone" data-i18n-label="healthPhone"><i data-lucide="smartphone" class="icon" aria-hidden="true"></i></span>
+              <span id="healthTunnelBadge" class="status-dot warn" data-status="missing" data-icon="cable" data-i18n-label="healthConnection"><i data-lucide="cable" class="icon" aria-hidden="true"></i></span>
+              <span id="healthMountBadge" class="status-dot warn" data-status="not ready" data-icon="badge-check" data-i18n-label="healthReady"><i data-lucide="badge-check" class="icon" aria-hidden="true"></i></span>
+              <button class="secondary icon-button icon-button-sm" onclick="refreshAll()" data-i18n-title="buttonRefresh" aria-label="重新檢查"><i data-lucide="refresh-cw" class="icon icon-sm" aria-hidden="true"></i></button>
+            </div>
+          </div>
+        </div>
+
+        <section id="heroStatus" class="card hero-status">
+          <div class="status-title">
+            <strong><i data-lucide="radio-tower" class="icon" aria-hidden="true"></i><span id="statusTitle" data-i18n="checking">正在檢查狀態</span></strong>
+            <span id="overallBadge" class="badge warn" data-status="checking">檢查中</span>
+          </div>
+          <p id="nextStep" class="next-step" data-i18n="nextChecking">請稍候，正在確認手機是否可以使用。</p>
+        </section>
+
+        <section class="card">
+          <h2><i data-lucide="map-pin" class="icon" aria-hidden="true"></i><span data-i18n="locationTitle">設定位置</span></h2>
+          <div class="simple-steps" aria-label="simple workflow">
+            <div class="simple-step"><b><i data-lucide="smartphone" class="icon icon-sm" aria-hidden="true"></i><span data-i18n="simpleStep1Title">1. 接上手機</span></b><span data-i18n="simpleStep1Text">插 USB、解鎖、按信任。</span></div>
+            <div class="simple-step"><b><i data-lucide="search" class="icon icon-sm" aria-hidden="true"></i><span data-i18n="simpleStep2Title">2. 選地點</span></b><span data-i18n="simpleStep2Text">搜尋或直接點地圖。</span></div>
+            <div class="simple-step"><b><i data-lucide="send" class="icon icon-sm" aria-hidden="true"></i><span data-i18n="simpleStep3Title">3. 按設定</span></b><span data-i18n="simpleStep3Text">讓 iPhone 使用這個位置。</span></div>
+          </div>
+          <label for="searchText" data-i18n="labelSearch">搜尋地點</label>
+          <div class="search-row">
+            <input id="searchText" data-i18n-placeholder="placeholderSearch" placeholder="例如：台北 101" />
+            <button class="secondary" onclick="searchLocation()"><i data-lucide="search" class="icon" aria-hidden="true"></i><span data-i18n="buttonSearch">搜尋</span></button>
+          </div>
+          <div class="grid-2" style="margin-top:10px">
+            <div><label for="lat" data-i18n="labelLatitude">緯度</label><input id="lat" inputmode="decimal" value="25.033964" /></div>
+            <div><label for="lon" data-i18n="labelLongitude">經度</label><input id="lon" inputmode="decimal" value="121.564468" /></div>
+          </div>
+          <button class="primary-wide" onclick="setLocation()"><i data-lucide="send" class="icon" aria-hidden="true"></i><span data-i18n="buttonSetLocation">設定到 iPhone</span></button>
+          <p class="muted" data-i18n="hintClickMap">也可以直接點地圖選擇位置。</p>
+          <details>
+            <summary><i data-lucide="clock-3" class="icon icon-sm" aria-hidden="true"></i><span data-i18n="summarySearchHistory">最近搜尋</span></summary>
+            <div id="searchHistory" class="history-list"></div>
+          </details>
+        </section>
+
+        <details class="support-panel">
+          <summary><span><i data-lucide="sliders-horizontal" class="icon" aria-hidden="true"></i><span data-i18n="supportTitle">更多選項</span></span></summary>
+          <div class="support-body">
+          <section>
+            <h2><i data-lucide="list-checks" class="icon" aria-hidden="true"></i><span data-i18n="quickStart">詳細狀態</span></h2>
+            <div class="steps">
+              <div id="stepDevice" class="step-row warn">
+                <div class="step-num">1</div>
+                <div class="step-main"><b data-i18n="deviceTitle">手機已連上</b><span data-i18n="deviceHint">用 USB 接上 iPhone，解鎖後在手機上按「信任」。</span></div>
+                <span id="deviceBadge" class="badge warn" data-status="unknown">未知</span>
+              </div>
+              <div id="stepTunnel" class="step-row warn">
+                <div class="step-num">2</div>
+                <div class="step-main"><b data-i18n="tunnelTitle">連線服務</b><span data-i18n="tunnelHint">系統會自動連到手機，不需要手動設定。</span></div>
+                <span id="tunnelBadge" class="badge warn" data-status="missing">未啟動</span>
+              </div>
+              <div id="stepMount" class="step-row warn">
+                <div class="step-num">3</div>
+                <div class="step-main"><b data-i18n="mountTitle">手機準備完成</b><span data-i18n="mountHint">看到「已準備」後，就可以選地點。</span></div>
+                <span id="mountBadge" class="badge warn" data-status="not ready">未準備</span>
+              </div>
+              <div id="stepSession" class="step-row warn">
+                <div class="step-num">4</div>
+                <div class="step-main"><b data-i18n="sessionTitle">定位狀態</b><span data-i18n="sessionHint">設定後會維持在新地點，直到你停止或清除。</span></div>
+                <span id="sessionBadge" class="badge warn" data-status="inactive">未啟動</span>
+              </div>
+            </div>
+            <div class="actions" style="margin-top:12px">
+              <button class="secondary icon-button" onclick="refreshAll()" data-i18n-title="buttonRefresh" aria-label="重新檢查"><i data-lucide="refresh-cw" class="icon" aria-hidden="true"></i></button>
+              <button class="secondary" onclick="runTroubleshoot()"><i data-lucide="stethoscope" class="icon" aria-hidden="true"></i><span data-i18n="buttonTroubleshoot">幫我檢查</span></button>
+              <button class="secondary" onclick="stopSession()"><i data-lucide="square" class="icon" aria-hidden="true"></i><span data-i18n="buttonStop">停止定位</span></button>
+              <button class="danger" onclick="clearLocation()"><i data-lucide="trash-2" class="icon" aria-hidden="true"></i><span data-i18n="buttonClear">清除位置</span></button>
+            </div>
+          </section>
+
+          <section>
+            <h2><i data-lucide="cable" class="icon" aria-hidden="true"></i><span data-i18n="tunnelCommand">連線服務</span></h2>
+            <div class="command-row">
+              <div id="tunnelCmd" class="command">make tunnel</div>
+              <button class="secondary" onclick="startTunnel()"><i data-lucide="refresh-cw" class="icon" aria-hidden="true"></i><span data-i18n="buttonStartTunnel">重試連線</span></button>
+            </div>
+            <div class="actions" style="margin-top:8px">
+              <button class="secondary" onclick="copyTunnel()"><i data-lucide="copy" class="icon" aria-hidden="true"></i><span data-i18n="buttonCopyFallback">複製備援指令</span></button>
+            </div>
+            <p class="muted" data-i18n="tunnelCommandHint">通常不用動這裡。只有一直無法連到手機時，才按「重試連線」或複製備援指令。</p>
+          </section>
+
+          <section>
+          <div class="tabs" role="tablist">
+            <button id="tabHelp" class="tab active" onclick="showTab('help')"><i data-lucide="circle-help" class="icon icon-sm" aria-hidden="true"></i><span data-i18n="tabHelp">檢查建議</span></button>
+            <button id="tabActivity" class="tab" onclick="showTab('activity')"><i data-lucide="scroll-text" class="icon icon-sm" aria-hidden="true"></i><span data-i18n="tabActivity">操作紀錄</span></button>
+            <button id="tabAdvanced" class="tab" onclick="showTab('advanced')"><i data-lucide="settings-2" class="icon icon-sm" aria-hidden="true"></i><span data-i18n="tabAdvanced">進階</span></button>
+          </div>
+
+          <div id="panelHelp" class="tab-panel active">
+            <div id="diagnosis" class="muted" data-i18n="diagnosisIdle">按「幫我檢查」會列出目前最可能需要處理的事。</div>
+            <div id="helpList" class="help-list"></div>
+          </div>
+
+          <div id="panelActivity" class="tab-panel">
+            <div class="actions" style="margin-bottom:10px">
+              <button class="secondary" onclick="copyLog()"><i data-lucide="copy" class="icon" aria-hidden="true"></i><span data-i18n="buttonCopyActivity">複製紀錄</span></button>
+              <button class="secondary" onclick="clearLog()"><i data-lucide="eraser" class="icon" aria-hidden="true"></i><span data-i18n="buttonClearActivity">清除</span></button>
+              <button class="secondary" onclick="viewTunnelLog()"><i data-lucide="file-text" class="icon" aria-hidden="true"></i><span data-i18n="buttonLog">查看連線紀錄</span></button>
+            </div>
+            <pre id="log">{}</pre>
+          </div>
+
+          <div id="panelAdvanced" class="tab-panel">
+            <div class="grid-2">
+              <div><label for="rsdHost" data-i18n="labelRsdHost">RSD Host</label><input id="rsdHost" readonly /></div>
+              <div><label for="rsdPort" data-i18n="labelRsdPort">RSD Port</label><input id="rsdPort" readonly /></div>
+            </div>
+            <label for="mode" style="margin-top:10px" data-i18n="labelMode">模式</label>
+            <select id="mode">
+              <option value="auto" data-i18n="optionAuto">自動</option>
+              <option value="rsd" data-i18n="optionRsd">僅 RSD</option>
+              <option value="legacy" data-i18n="optionLegacy">舊模式</option>
+            </select>
+            <p class="muted" data-i18n="advancedHint">一般情況保持「自動」即可。只有在排查特定 iOS 或 pymobiledevice3 問題時才需要更改。</p>
+          </div>
+          </section>
+          </div>
+        </details>
+      </div>
+    </aside>
+    <main class="map-wrap">
+      <div class="map-chip" data-i18n="mapHint">點一下地圖即可選擇目標位置。</div>
+      <div id="map"></div>
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+  <script>
+const $ = id => document.getElementById(id);
+let marker;
+let tunnel = null;
+let lastTunnelData = null;
+let lastDeviceOk = false;
+let currentLang = localStorage.getItem("lang") || "zh";
+const searchHistory = JSON.parse(localStorage.getItem("searchHistory") || "[]");
+const i18n = {
+  zh: {
+    appTitle:"iPhone GPS 控制器", subtitle:"照著提示操作：接上手機、選地點、按設定。", labelLanguage:"語言",
+    checking:"正在檢查狀態", nextChecking:"請稍候，正在確認手機是否可以使用。", quickStart:"詳細狀態",
+    deviceTitle:"手機已連上", deviceHint:"用 USB 接上 iPhone，解鎖後在手機上按「信任」。", tunnelTitle:"連線服務",
+    tunnelHint:"系統會自動連到手機，不需要手動設定。", mountTitle:"手機準備完成", mountHint:"看到「已準備」後，就可以選地點。",
+    sessionTitle:"定位狀態", sessionHint:"設定後會維持在新地點，直到你停止或清除。", buttonRefresh:"重新檢查",
+    healthTitle:"系統檢查", healthPhone:"手機", healthConnection:"連線", healthReady:"準備",
+    simpleStep1Title:"1. 接上手機", simpleStep1Text:"插 USB、解鎖、按信任。", simpleStep2Title:"2. 選地點", simpleStep2Text:"搜尋或直接點地圖。", simpleStep3Title:"3. 按設定", simpleStep3Text:"讓 iPhone 使用這個位置。", supportTitle:"更多選項",
+    buttonTroubleshoot:"幫我檢查", tunnelCommand:"連線服務", buttonCopy:"複製", buttonStartTunnel:"重試連線", buttonCopyFallback:"複製備援指令",
+    tunnelCommandHint:"通常不用動這裡。只有一直無法連到手機時，才按「重試連線」或複製備援指令。", locationTitle:"設定位置",
+    labelSearch:"搜尋地點", placeholderSearch:"例如：台北 101", buttonSearch:"搜尋", labelLatitude:"緯度", labelLongitude:"經度",
+    buttonSetLocation:"設定到 iPhone", buttonStop:"停止定位", buttonClear:"清除位置", hintClickMap:"也可以直接點地圖選擇位置。",
+    summarySearchHistory:"最近搜尋", tabHelp:"檢查建議", tabActivity:"操作紀錄", tabAdvanced:"進階", diagnosisIdle:"按「幫我檢查」會列出目前最可能需要處理的事。",
+    buttonCopyActivity:"複製紀錄", buttonClearActivity:"清除", buttonLog:"查看連線紀錄", labelRsdHost:"RSD Host", labelRsdPort:"RSD Port",
+    labelMode:"模式", optionAuto:"自動", optionRsd:"僅 RSD", optionLegacy:"舊模式", advancedHint:"一般情況保持「自動」即可。只有在排查特定 iOS 或 pymobiledevice3 問題時才需要更改。",
+    mapHint:"點一下地圖即可選擇目標位置。", statusReady:"可以設定位置", nextReady:"手機已準備好。搜尋地點或點選地圖後，按「設定到 iPhone」。",
+    statusSession:"定位已套用", nextSession:"手機目前會顯示你設定的位置。要換地點可直接重新設定；完成後按「停止模擬」或「清除位置」。",
+    statusNeedDevice:"等待 iPhone", nextNeedDevice:"用 USB 接上 iPhone、解鎖，並在手機上按「信任」。", statusNeedTunnel:"正在連接手機",
+    nextNeedTunnel:"系統正在自動連接手機。若一直卡住，可以到「更多選項」重試連線。", statusNeedMount:"正在準備手機",
+    nextNeedMount:"手機已連上，正在做最後準備。若停太久，按「幫我檢查」。", statusChecking:"檢查中",
+    badgeChecking:"檢查中", badgeReady:"就緒", badgeConnected:"已連線", badgeMissing:"未啟動", badgeMounted:"已準備", badgeMounting:"準備中",
+    badgeFailed:"失敗", badgeInactive:"未啟動", badgeActive:"啟動中", badgeStarting:"啟動中", badgeUnknown:"未知", badgeCheckLog:"看記錄", badgeNotReady:"未準備",
+    searching:"搜尋地點中...", searchEnter:"請先輸入地點名稱。", searchNoResult:"找不到這個地點。", searchFail:"搜尋失敗，請確認網路連線。",
+    copiedTunnel:"已複製備援指令。", copiedLog:"已複製紀錄內容。", logCleared:"紀錄已清除。", loading:"讀取中...", running:"執行中...", startingTunnel:"正在重試連線...",
+    sessionStopped:"已停止定位。", locationCleared:"已清除位置。", startTunnelFirst:"請先完成手機連線。", startingLocation:"正在設定位置...",
+    locationActive:"定位已套用", tunnelLogLoaded:"已載入連線紀錄。", noSearches:"尚無搜尋記錄。",
+    helpAllGood:"狀態看起來正常，可以設定位置。", helpNoDeviceTitle:"手機沒有連上", helpNoDeviceText:"確認 USB 已連接、iPhone 已解鎖，並在手機上點選信任這台電腦。",
+    helpNoTunnelTitle:"手機連線尚未完成", helpNoTunnelText:"先按「重試連線」。若仍失敗，複製備援指令到終端機執行；若要求密碼，輸入 Mac 登入密碼。",
+    helpMountTitle:"手機還沒準備好", helpMountText:"確認 iPhone 已開啟開發者模式並重開機；也可以查看連線紀錄找錯誤訊息。",
+    helpSessionTitle:"還沒有套用新位置", helpSessionText:"狀態就緒後，搜尋地點或點地圖，再按「設定到 iPhone」。",
+    diagnosisDone:"檢查完成。下方是最可能需要處理的項目。"
+  },
+  en: {
+    appTitle:"iPhone GPS Controller", subtitle:"Follow the prompts: connect your phone, choose a place, apply it.", labelLanguage:"Language",
+    checking:"Checking status", nextChecking:"Please wait while we check whether your phone is ready.", quickStart:"Detailed Status",
+    deviceTitle:"Phone connected", deviceHint:"Plug in your iPhone, unlock it, and tap Trust on the phone.", tunnelTitle:"Phone connection",
+    tunnelHint:"The app connects to your phone automatically.", mountTitle:"Phone ready", mountHint:"When this says Ready, you can choose a place.",
+    sessionTitle:"Location status", sessionHint:"After setting a place, it stays active until you stop or clear it.", buttonRefresh:"Check again",
+    healthTitle:"Health Check", healthPhone:"Phone", healthConnection:"Connection", healthReady:"Ready",
+    simpleStep1Title:"1. Connect phone", simpleStep1Text:"Plug in, unlock, tap Trust.", simpleStep2Title:"2. Pick a place", simpleStep2Text:"Search or click the map.", simpleStep3Title:"3. Apply", simpleStep3Text:"Set this location on iPhone.", supportTitle:"More options",
+    buttonTroubleshoot:"Help me check", tunnelCommand:"Phone Connection", buttonCopy:"Copy", buttonStartTunnel:"Retry connection", buttonCopyFallback:"Copy fallback command",
+    tunnelCommandHint:"You usually do not need this section. Use Retry connection or the fallback command only if the phone never connects.", locationTitle:"Set Location",
+    labelSearch:"Search place", placeholderSearch:"e.g. Taipei 101", buttonSearch:"Search", labelLatitude:"Latitude", labelLongitude:"Longitude",
+    buttonSetLocation:"Set on iPhone", buttonStop:"Stop Simulation", buttonClear:"Clear Location", hintClickMap:"You can also click the map to choose a place.",
+    summarySearchHistory:"Recent searches", tabHelp:"Suggestions", tabActivity:"Activity log", tabAdvanced:"Advanced", diagnosisIdle:"Click Help me check to list the most likely next steps.",
+    buttonCopyActivity:"Copy history", buttonClearActivity:"Clear", buttonLog:"View connection log", labelRsdHost:"RSD Host", labelRsdPort:"RSD Port",
+    labelMode:"Mode", optionAuto:"Auto", optionRsd:"RSD only", optionLegacy:"Legacy", advancedHint:"Auto is best for normal use. Change this only when troubleshooting iOS or pymobiledevice3 behavior.",
+    mapHint:"Click the map to choose the target location.", statusReady:"Ready to set location", nextReady:"Your phone is ready. Search or click the map, then press Set on iPhone.",
+    statusSession:"Location applied", nextSession:"Your phone is using the selected location. Set a new place to move, or stop/clear when finished.",
+    statusNeedDevice:"Waiting for iPhone", nextNeedDevice:"Plug in USB, unlock the iPhone, and tap Trust on the phone.", statusNeedTunnel:"Connecting to phone",
+    nextNeedTunnel:"The app is connecting to your phone automatically. If it stays stuck, use More options to retry.", statusNeedMount:"Preparing phone",
+    nextNeedMount:"Your phone is connected and the app is doing final setup. If it gets stuck, click Help me check.", statusChecking:"Checking",
+    badgeChecking:"Checking", badgeReady:"Ready", badgeConnected:"Connected", badgeMissing:"Missing", badgeMounted:"Ready", badgeMounting:"Preparing",
+    badgeFailed:"Failed", badgeInactive:"Inactive", badgeActive:"Active", badgeStarting:"Starting", badgeUnknown:"Unknown", badgeCheckLog:"Check log", badgeNotReady:"Not ready",
+    searching:"Searching...", searchEnter:"Enter a place name first.", searchNoResult:"No place found.", searchFail:"Search failed. Check network.",
+    copiedTunnel:"Fallback command copied.", copiedLog:"History copied.", logCleared:"History cleared.", loading:"Loading...", running:"Running...", startingTunnel:"Retrying phone connection...",
+    sessionStopped:"Location stopped.", locationCleared:"Location cleared.", startTunnelFirst:"Finish phone connection first.", startingLocation:"Setting location...",
+    locationActive:"Location applied", tunnelLogLoaded:"Connection log loaded.", noSearches:"No searches yet.",
+    helpAllGood:"Status looks good. You can set a location.", helpNoDeviceTitle:"Phone is not connected", helpNoDeviceText:"Check USB, unlock the iPhone, and tap Trust This Computer on the phone.",
+    helpNoTunnelTitle:"Phone connection is still preparing", helpNoTunnelText:"Click Retry connection first. If it still fails, copy the fallback command into Terminal. If asked for a password, enter your Mac login password.",
+    helpMountTitle:"Phone is not ready yet", helpMountText:"Make sure Developer Mode is enabled on the iPhone and rebooted. The connection log can show the exact error.",
+    helpSessionTitle:"No location has been applied yet", helpSessionText:"When ready, search for a place or click the map, then press Set on iPhone.",
+    diagnosisDone:"Check complete. The most likely next steps are below."
+  }
+};
+const badgeKeys = { checking:"badgeChecking", ready:"badgeReady", connected:"badgeConnected", missing:"badgeMissing", mounted:"badgeMounted", mounting:"badgeMounting", failed:"badgeFailed", inactive:"badgeInactive", active:"badgeActive", starting:"badgeStarting", unknown:"badgeUnknown", "check log":"badgeCheckLog", "not ready":"badgeNotReady" };
+function t(key) { return (i18n[currentLang] && i18n[currentLang][key]) || key; }
+function setLanguage(lang) { currentLang = lang; localStorage.setItem("lang", lang); applyLanguage(); updateOverallStatus(); }
+function applyLanguage() {
+  document.documentElement.lang = currentLang === "zh" ? "zh-Hant" : "en";
+  $("languageSelect").value = currentLang;
+  document.querySelectorAll("[data-i18n]").forEach(el => { el.textContent = t(el.dataset.i18n); });
+  document.querySelectorAll("[data-i18n-placeholder]").forEach(el => { el.placeholder = t(el.dataset.i18nPlaceholder); });
+  document.querySelectorAll("[data-i18n-title]").forEach(el => {
+    const text = t(el.dataset.i18nTitle);
+    el.title = text;
+    el.setAttribute("aria-label", text);
+  });
+  refreshBadgeText();
+  renderSearchHistory();
+  refreshIcons();
+}
+function refreshIcons() {
+  if (window.lucide && typeof window.lucide.createIcons === "function") {
+    window.lucide.createIcons({ attrs: { "stroke-width": 2.2 } });
+  }
+}
+function status(message, state="warn") {
+  $("statusTitle").textContent = message;
+  $("overallBadge").textContent = state === true ? t("badgeReady") : state === false ? t("badgeFailed") : t("badgeChecking");
+  $("overallBadge").className = "badge " + (state === true ? "ok" : state === false ? "bad" : "warn");
+}
+function setStep(rowId, badgeId, value, tone) {
+  const row = $(rowId);
+  row.className = "step-row " + tone;
+  const badge = $(badgeId);
+  badge.dataset.status = value;
+  badge.className = "badge " + tone;
+  badge.textContent = t(badgeKeys[value] || value);
+  syncHealthBadge(badgeId, value, tone);
+}
+function refreshBadgeText() {
+  ["deviceBadge","tunnelBadge","mountBadge","sessionBadge","overallBadge","healthDeviceBadge","healthTunnelBadge","healthMountBadge"].forEach(id => {
+    const el = $(id);
+    if (!el || !el.dataset.status) return;
+    if (el.classList.contains("status-dot")) {
+      renderStatusIcon(el, el.dataset.status, statusTone(el.dataset.status));
+    } else {
+      el.textContent = t(badgeKeys[el.dataset.status] || el.dataset.status);
+    }
+  });
+}
+function statusTone(value) {
+  if (["ready", "connected", "mounted", "active", "ok"].includes(value)) return "ok";
+  if (["failed", "check log"].includes(value)) return "bad";
+  return "warn";
+}
+function statusIcon(value) {
+  if (["ready", "connected", "mounted", "active", "ok"].includes(value)) return "check";
+  if (["failed", "check log"].includes(value)) return "triangle-alert";
+  return "circle";
+}
+function renderStatusIcon(el, value, tone) {
+  const label = t(el.dataset.i18nLabel || "");
+  const statusText = t(badgeKeys[value] || value);
+  const icon = el.dataset.icon || statusIcon(value);
+  el.dataset.status = value;
+  el.className = "status-dot " + tone;
+  el.innerHTML = `<i data-lucide="${icon}" class="icon" aria-hidden="true"></i>`;
+  el.title = `${label}: ${statusText}`;
+  el.setAttribute("aria-label", `${label}: ${statusText}`);
+  refreshIcons();
+}
+function syncHealthBadge(sourceId, value, tone) {
+  const map = { deviceBadge:"healthDeviceBadge", tunnelBadge:"healthTunnelBadge", mountBadge:"healthMountBadge" };
+  const target = $(map[sourceId]);
+  if (!target) return;
+  renderStatusIcon(target, value, tone);
+}
+function badgeValue(id) { return ($(id).dataset.status || "").toLowerCase(); }
+function friendlyBackendText(text) {
+  if (!text) return "";
+  const raw = String(text);
+  if (/Tunnel requires root privileges|requires root privileges|需要\s*(macOS|Mac)\s*管理員權限/i.test(raw)) {
+    return currentLang === "zh"
+      ? "需要 Mac 授權才能完成連線。請用 make run 啟動，或在「更多選項」使用備援指令。"
+      : "Mac permission is needed to finish connecting. Start with make run, or use the fallback command in More options.";
+  }
+  if (/Start the Web UI with `?make run`?|run `?make tunnel`?/i.test(raw)) {
+    return currentLang === "zh"
+      ? "請用 make run 啟動，或在「更多選項」使用備援指令。"
+      : "Start with make run, or use the fallback command in More options.";
+  }
+  if (/Docker mode cannot|Automatic tunnel startup is disabled|Tunnel helper is not available/i.test(raw)) {
+    return currentLang === "zh"
+      ? "目前的啟動方式無法直接連接 USB 手機。請在 Mac 上使用 make start。"
+      : "This startup mode cannot connect to the USB phone directly. Use make start on the Mac.";
+  }
+  return raw.replace(/\btunnel\b/gi, (word, offset, text) => {
+    const prefix = text.slice(Math.max(0, offset - 5), offset).toLowerCase();
+    return prefix === "make " ? word : (currentLang === "zh" ? "連線服務" : "phone connection");
+  });
+}
+function friendlyTunnelMessage() {
+  if (!lastTunnelData) return "";
+  const reason = lastTunnelData.reason || "";
+  if (/requires root privileges|需要\s*(macOS|Mac)\s*管理員權限/i.test(reason)) {
+    return friendlyBackendText(reason);
+  }
+  return [...new Set([lastTunnelData.reason, lastTunnelData.hint].filter(Boolean).map(friendlyBackendText))].join(" ");
+}
+function log(obj) {
+  $("log").textContent = typeof obj === "string" ? obj : JSON.stringify(obj, null, 2);
+  if (obj && obj.ok === false) status(obj.reason || obj.hint || "Error", false);
+}
+async function fetchJson(path, options = {}) {
+  try {
+    const res = await fetch(path, options);
+    const text = await res.text();
+    let data = null;
+    try {
+      data = text ? JSON.parse(text) : {};
+    } catch (err) {
+      return {
+        ok:false,
+        reason:`API returned ${res.status} ${res.statusText || ""}`.trim(),
+        hint:"The server response was not JSON. Check the activity panel for details.",
+        path,
+        raw:text.slice(0, 1200)
+      };
+    }
+    if (!res.ok && data && data.ok !== false) {
+      data.ok = false;
+      data.reason = data.reason || `API returned ${res.status} ${res.statusText || ""}`.trim();
+    }
+    return data;
+  } catch (err) {
+    return { ok:false, reason:"Cannot reach the Web UI server.", hint:"Refresh the page or restart the Web UI.", path, error:err.message };
+  }
+}
+async function get(path, silent=false) {
+  if (!silent) status(t("loading"));
+  const data = await fetchJson(path);
+  if (!silent) log(data);
+  return data;
+}
+async function post(path, body=null, silent=false) {
+  if (!silent) status(t("running"));
+  const options = { method:"POST" };
+  if (body) {
+    options.headers = { "Content-Type":"application/json" };
+    options.body = JSON.stringify(body);
+  }
+  const data = await fetchJson(path, options);
+  if (!silent) log(data);
+  return data;
+}
+function updateOverallStatus() {
+  const hero = $("heroStatus");
+  const active = badgeValue("sessionBadge") === "active";
+  const mounted = badgeValue("mountBadge") === "mounted";
+  const tunnelReady = badgeValue("tunnelBadge") === "ready";
+  if (active) {
+    hero.className = "card hero-status ready";
+    $("statusTitle").textContent = t("statusSession");
+    $("nextStep").textContent = t("nextSession");
+    $("overallBadge").dataset.status = "active";
+    $("overallBadge").className = "badge ok";
+  } else if (mounted && tunnelReady && lastDeviceOk) {
+    hero.className = "card hero-status ready";
+    $("statusTitle").textContent = t("statusReady");
+    $("nextStep").textContent = t("nextReady");
+    $("overallBadge").dataset.status = "ready";
+    $("overallBadge").className = "badge ok";
+  } else if (!lastDeviceOk) {
+    hero.className = "card hero-status";
+    $("statusTitle").textContent = t("statusNeedDevice");
+    $("nextStep").textContent = t("nextNeedDevice");
+    $("overallBadge").dataset.status = "check log";
+    $("overallBadge").className = "badge warn";
+  } else if (!tunnelReady) {
+    hero.className = "card hero-status";
+    $("statusTitle").textContent = t("statusNeedTunnel");
+    $("nextStep").textContent = lastTunnelData && (lastTunnelData.reason || lastTunnelData.hint)
+      ? friendlyTunnelMessage()
+      : t("nextNeedTunnel");
+    $("overallBadge").dataset.status = "missing";
+    $("overallBadge").className = "badge warn";
+  } else {
+    hero.className = "card hero-status";
+    $("statusTitle").textContent = t("statusNeedMount");
+    $("nextStep").textContent = t("nextNeedMount");
+    $("overallBadge").dataset.status = "mounting";
+    $("overallBadge").className = "badge warn";
+  }
+  refreshBadgeText();
+}
+async function refreshTunnel(silent=false) {
+  const data = await get("/api/tunnel", silent);
+  lastTunnelData = data;
+  tunnel = data.ok && data.active ? data : null;
+  if (tunnel) {
+    $("rsdHost").value = tunnel.host || "";
+    $("rsdPort").value = tunnel.port || "";
+    setStep("stepTunnel", "tunnelBadge", "ready", "ok");
+    return true;
+  }
+  if (data.helper_active || data.starting) {
+    setStep("stepTunnel", "tunnelBadge", "starting", "warn");
+    return false;
+  }
+  setStep("stepTunnel", "tunnelBadge", "missing", "bad");
+  return false;
+}
+async function refreshDevices() {
+  const data = await get("/api/devices", true);
+  const text = JSON.stringify(data);
+  lastDeviceOk = data.ok === true && !/No device|NoDevice/i.test(text);
+  setStep("stepDevice", "deviceBadge", lastDeviceOk ? "connected" : "check log", lastDeviceOk ? "ok" : "bad");
+}
+async function autoMountImage() {
+  if (!tunnel) return false;
+  const current = badgeValue("mountBadge");
+  if (current === "mounted" || current === "mounting") return current === "mounted";
+  setStep("stepMount", "mountBadge", "mounting", "warn");
+  const data = await post(`/api/setup/mount?rsd_host=${encodeURIComponent(tunnel.host)}&rsd_port=${encodeURIComponent(tunnel.port)}`, null, true);
+  const text = JSON.stringify(data);
+  const ok = data.ok === true || /already mounted/i.test(text);
+  setStep("stepMount", "mountBadge", ok ? "mounted" : "failed", ok ? "ok" : "bad");
+  if (!ok) log(data);
+  return ok;
+}
+async function refreshSessionStatus(silent=true) {
+  const data = await get("/api/location/session", silent);
+  setStep("stepSession", "sessionBadge", data.active ? "active" : "inactive", data.active ? "ok" : "warn");
+  return data.active;
+}
+async function refreshAll() {
+  status(t("statusChecking"));
+  await refreshDevices();
+  const tunnelOk = await refreshTunnel(true);
+  if (tunnelOk) await autoMountImage();
+  await refreshSessionStatus(true);
+  updateOverallStatus();
+}
+async function copyTunnel() {
+  await navigator.clipboard.writeText($("tunnelCmd").textContent.trim());
+  status(t("copiedTunnel"), true);
+}
+async function startTunnel() {
+  status(t("startingTunnel"));
+  const data = await post("/api/tunnel/start", null, true);
+  log(data);
+  await refreshAll();
+}
+async function searchLocation() {
+  const query = $("searchText").value.trim();
+  if (!query) { status(t("searchEnter"), "warn"); return; }
+  addSearchHistory(query);
+  status(t("searching"));
+  try {
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`);
+    const items = await res.json();
+    if (!items.length) { status(t("searchNoResult"), false); return; }
+    const place = items[0];
+    const lat = parseFloat(place.lat);
+    const lon = parseFloat(place.lon);
+    $("lat").value = lat.toFixed(6);
+    $("lon").value = lon.toFixed(6);
+    updateMarker(lat, lon, true);
+    status(place.display_name, true);
+    log({ ok:true, place:place.display_name, lat, lon });
+  } catch (err) {
+    status(t("searchFail"), false);
+    log({ ok:false, error:err.message });
+  }
+}
+async function setLocation() {
+  await refreshAll();
+  if (!tunnel) { status(t("startTunnelFirst"), false); return; }
+  if (badgeValue("mountBadge") !== "mounted" && !(await autoMountImage())) return;
+  const body = {
+    lat: parseFloat($("lat").value), lon: parseFloat($("lon").value), mode: $("mode").value,
+    rsd_host: tunnel.host, rsd_port: tunnel.port, keep_session: true
+  };
+  if (!Number.isFinite(body.lat) || !Number.isFinite(body.lon)) {
+    status("Latitude / longitude is invalid.", false);
+    return;
+  }
+  status(t("startingLocation"));
+  const data = await post("/api/location/set", body, true);
+  log(data);
+  if (data.ok) {
+    setStep("stepSession", "sessionBadge", "active", "ok");
+    updateMarker(body.lat, body.lon, true);
+    status(`${t("locationActive")}: ${body.lat.toFixed(6)}, ${body.lon.toFixed(6)}`, true);
+    updateOverallStatus();
+  }
+}
+async function stopSession() {
+  const data = await post("/api/location/session/stop");
+  setStep("stepSession", "sessionBadge", "inactive", "warn");
+  if (data.ok) status(t("sessionStopped"), true);
+  updateOverallStatus();
+}
+async function clearLocation() {
+  await refreshTunnel(true);
+  let q = "?mode=rsd";
+  if (tunnel) q += `&rsd_host=${encodeURIComponent(tunnel.host)}&rsd_port=${encodeURIComponent(tunnel.port)}`;
+  const data = await post("/api/location/clear" + q);
+  setStep("stepSession", "sessionBadge", "inactive", "warn");
+  if (data.ok) status(t("locationCleared"), true);
+  updateOverallStatus();
+}
+async function viewTunnelLog() {
+  const data = await get("/api/tunnel/log", true);
+  if (data.log) {
+    $("log").textContent = data.log;
+    status(t("tunnelLogLoaded"), true);
+    showTab("activity");
+  } else {
+    log(data);
+  }
+}
+async function copyLog() {
+  await navigator.clipboard.writeText($("log").textContent);
+  status(t("copiedLog"), true);
+}
+function clearLog() {
+  $("log").textContent = "{}";
+  status(t("logCleared"), true);
+}
+function showTab(name) {
+  ["help","activity","advanced"].forEach(tab => {
+    $("tab" + cap(tab)).classList.toggle("active", tab === name);
+    $("panel" + cap(tab)).classList.toggle("active", tab === name);
+  });
+}
+function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+function runTroubleshoot() {
+  const items = [];
+  if (!lastDeviceOk) items.push(["helpNoDeviceTitle", "helpNoDeviceText"]);
+  if (badgeValue("tunnelBadge") !== "ready") {
+    const tunnelText = lastTunnelData && (lastTunnelData.reason || lastTunnelData.hint)
+      ? friendlyTunnelMessage()
+      : t("helpNoTunnelText");
+    items.push(["helpNoTunnelTitle", tunnelText, true]);
+  }
+  if (badgeValue("mountBadge") !== "mounted") items.push(["helpMountTitle", "helpMountText"]);
+  if (badgeValue("sessionBadge") !== "active") items.push(["helpSessionTitle", "helpSessionText"]);
+  $("diagnosis").textContent = items.length ? t("diagnosisDone") : t("helpAllGood");
+  $("helpList").innerHTML = items.map(([title, text, raw]) => `<div class="help-item"><b>${t(title)}</b><span>${raw ? escapeHtml(text) : t(text)}</span></div>`).join("");
+  showTab("help");
+}
+function renderSearchHistory() {
+  const list = $("searchHistory");
+  if (!searchHistory.length) { list.textContent = t("noSearches"); return; }
+  list.innerHTML = searchHistory.slice(-5).reverse().map(item => `<button class="history-item" onclick="searchHistoryClick('${encodeURIComponent(item)}')"><i data-lucide="map-pin" class="icon icon-sm" aria-hidden="true"></i><span>${escapeHtml(item)}</span></button>`).join("");
+  refreshIcons();
+}
+function addSearchHistory(query) {
+  const idx = searchHistory.indexOf(query);
+  if (idx !== -1) searchHistory.splice(idx, 1);
+  searchHistory.push(query);
+  while (searchHistory.length > 10) searchHistory.shift();
+  localStorage.setItem("searchHistory", JSON.stringify(searchHistory));
+  renderSearchHistory();
+}
+function searchHistoryClick(query) {
+  $("searchText").value = decodeURIComponent(query);
+  searchLocation();
+}
+function escapeHtml(text) {
+  return text.replace(/[&<>"']/g, ch => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#039;" }[ch]));
+}
+function updateMarker(lat, lon, recenter=true) {
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return;
+  if (!marker) marker = L.marker([lat, lon]).addTo(map);
+  else marker.setLatLng([lat, lon]);
+  marker.bindPopup(`Target location<br>${lat.toFixed(6)}, ${lon.toFixed(6)}`);
+  if (recenter) map.setView([lat, lon], Math.max(map.getZoom(), 15), { animate:true });
+}
+function syncMarkerFromInputs() {
+  updateMarker(parseFloat($("lat").value), parseFloat($("lon").value), true);
+}
+function bindInputSync() {
+  ["lat","lon"].forEach(id => {
+    $(id).addEventListener("change", syncMarkerFromInputs);
+    $(id).addEventListener("keydown", event => { if (event.key === "Enter") syncMarkerFromInputs(); });
+  });
+  $("searchText").addEventListener("keydown", event => { if (event.key === "Enter") searchLocation(); });
+}
+const map = L.map("map").setView([25.033964, 121.564468], 14);
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  maxZoom:19,
+  attribution:"&copy; OpenStreetMap contributors"
+}).addTo(map);
+map.on("click", e => {
+  const lat = Number(e.latlng.lat.toFixed(6));
+  const lon = Number(e.latlng.lng.toFixed(6));
+  $("lat").value = lat;
+  $("lon").value = lon;
+  updateMarker(lat, lon, true);
+});
+updateMarker(25.033964, 121.564468, true);
+bindInputSync();
+applyLanguage();
+refreshAll();
+setInterval(refreshAll, 5000);
+  </script>
+</body>
+</html>
