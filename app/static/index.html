@@ -126,13 +126,20 @@
     .simple-step b { display:flex; align-items:center; gap:6px; font-size:13px; }
     .simple-step span { display:block; margin-top:3px; color:var(--muted); font-size:12px; line-height:1.35; }
     .status-bar { min-height:32px; border-top:1px solid var(--line); border-bottom:1px solid var(--line); padding:8px 0; display:grid; gap:8px; }
-    .status-bar-title { min-width:max-content; color:#667085; font-size:12px; font-weight:800; overflow:visible; white-space:nowrap; text-transform:uppercase; display:inline-flex; align-items:center; gap:6px; width:max-content; }
+    .status-bar-title { min-width:max-content; color:#667085; font-size:12px; font-weight:800; overflow:visible; white-space:nowrap; text-transform:uppercase; display:inline-flex; align-items:center; gap:6px; width:max-content; flex-wrap:wrap; }
+    .status-updated { color:#98a2b3; font-weight:700; text-transform:none; }
     .status-dots { display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-start; }
-    .status-dot { min-height:28px; border-radius:999px; border:1px solid #d6dde7; background:#eef2f7; color:#344054; display:inline-flex; align-items:center; justify-content:center; gap:5px; white-space:nowrap; padding:4px 8px; cursor:help; font-size:12px; font-weight:800; }
+    .status-dot { position:relative; min-height:28px; border-radius:999px; border:1px solid #d6dde7; background:#eef2f7; color:#344054; display:inline-flex; align-items:center; justify-content:center; gap:5px; white-space:nowrap; padding:4px 8px; cursor:pointer; font-size:12px; font-weight:800; }
+    .status-dot::after { content:attr(data-tooltip); position:absolute; left:0; top:calc(100% + 8px); z-index:900; display:none; width:max-content; max-width:min(320px, calc(100vw - 40px)); white-space:normal; border-radius:8px; background:#111827; color:#fff; padding:9px 10px; font-size:12px; line-height:1.45; font-weight:600; box-shadow:0 12px 30px rgba(16,24,40,.22); }
+    .status-dot::before { content:""; position:absolute; left:18px; top:calc(100% + 3px); z-index:901; display:none; border:5px solid transparent; border-bottom-color:#111827; }
+    .status-dot:hover::after, .status-dot:hover::before, .status-dot:focus-visible::after, .status-dot:focus-visible::before { display:block; }
     .status-dot .icon { width:14px; height:14px; }
     .status-dot.ok { background:var(--good-bg); border-color:#a7e4c5; color:var(--good); }
     .status-dot.warn { background:var(--warn-bg); border-color:#f3d98b; color:var(--warn); }
     .status-dot.bad { background:var(--bad-bg); border-color:#f3b4b0; color:var(--bad); }
+    .status-detail { display:none; border:1px solid var(--line); border-radius:8px; background:#fbfcfe; padding:10px 12px; color:#344054; font-size:13px; line-height:1.45; }
+    .status-detail.open { display:block; }
+    .status-detail b { display:block; margin-bottom:3px; color:#172033; }
     .mode-banner { display:none; border:1px solid var(--line); border-radius:8px; padding:10px 12px; background:#fbfcfe; color:#344054; font-size:13px; line-height:1.45; }
     .mode-banner.demo { display:block; border-color:#f3d98b; background:var(--warn-bg); color:#704900; }
     .mode-banner.live { display:block; border-color:#a7e4c5; background:var(--good-bg); color:var(--good); }
@@ -200,7 +207,7 @@
             </div>
           </header>
           <div class="status-bar" aria-live="polite">
-            <div class="status-bar-title"><i data-lucide="activity" class="icon icon-sm" aria-hidden="true"></i><span data-i18n="healthTitle">系統檢查</span></div>
+            <div class="status-bar-title"><i data-lucide="activity" class="icon icon-sm" aria-hidden="true"></i><span data-i18n="healthTitle">系統檢查</span><span id="healthUpdatedAt" class="status-updated"></span></div>
             <div class="status-dots">
               <span id="healthDeviceBadge" class="status-dot warn" data-status="unknown" data-icon="smartphone" data-i18n-label="healthUsbPhone"><i data-lucide="smartphone" class="icon" aria-hidden="true"></i></span>
               <span id="healthTunnelBadge" class="status-dot warn" data-status="missing" data-icon="cable" data-i18n-label="healthConnection"><i data-lucide="cable" class="icon" aria-hidden="true"></i></span>
@@ -208,6 +215,7 @@
               <button id="healthReconnectButton" class="secondary" data-device-action="true" onclick="startTunnel(this)" data-i18n-title="buttonReconnectTunnel" aria-label="重新連線"><i data-lucide="plug-zap" class="icon icon-sm" aria-hidden="true"></i><span data-i18n="buttonReconnectTunnel">重連</span></button>
               <button class="secondary icon-button icon-button-sm" onclick="refreshAll(this)" data-i18n-title="buttonRefreshStatus" aria-label="更新狀態"><i data-lucide="refresh-cw" class="icon icon-sm" aria-hidden="true"></i></button>
             </div>
+            <div id="statusDetail" class="status-detail" aria-live="polite"></div>
           </div>
           <div id="modeBanner" class="mode-banner"></div>
         </div>
@@ -430,6 +438,7 @@ let tunnel = null;
 let lastTunnelData = null;
 let lastDeviceOk = false;
 let demoMode = false;
+let selectedStatusDetailId = null;
 let currentLang = localStorage.getItem("lang") || "zh";
 const searchHistory = JSON.parse(localStorage.getItem("searchHistory") || "[]");
 const routeDraftKey = "walkRouteDraft";
@@ -443,6 +452,7 @@ const i18n = {
     tunnelHint:"系統會自動連到手機，不需要手動設定。", mountTitle:"手機準備完成", mountHint:"看到「已準備」後，就可以選地點。",
     sessionTitle:"定位狀態", sessionHint:"設定後會維持在新地點，直到你停止或清除。", buttonRefresh:"重新檢查", buttonRefreshStatus:"更新狀態", buttonReconnectTunnel:"重連",
     healthTitle:"系統檢查", healthPhone:"手機", healthUsbPhone:"USB 手機", healthConnection:"定位通道", healthReady:"準備", healthLocationReady:"定位準備",
+    healthUpdated:"更新於 {time}", healthDetailTitle:"{label}: {status}", statusDetailEmpty:"停在或點一下狀態，可以查看說明。",
     tabSingleLocation:"單點定位", tabWalkRoute:"路線走路",
     simpleStep1Title:"1. 接上手機", simpleStep1Text:"插 USB、解鎖、按信任。", simpleStep2Title:"2. 選地點", simpleStep2Text:"搜尋或直接點地圖。", simpleStep3Title:"3. 按設定", simpleStep3Text:"讓 iPhone 使用這個位置。", supportTitle:"更多選項",
     buttonTroubleshoot:"幫我檢查", tunnelCommand:"連線服務", buttonCopy:"複製", buttonStartTunnel:"重試連線", buttonCopyFallback:"複製備援指令",
@@ -458,7 +468,7 @@ const i18n = {
     routeHint:"按「規劃路線」後在地圖上依序點選路線點。", routePlanning:"路線規劃中：點地圖加入下一個路線點。",
     routeNeedPoints:"至少需要 2 個路線點。", routeStarted:"已開始模擬走路。", routeStopped:"已停止走路。", routeCleared:"路線已清空。",
     routeInvalidSpeed:"速度或更新間隔無效。", routePoint:"路線點", routeProgress:"走路進度", routeReversed:"路線已反向。", routeUndo:"已刪除最後一個路線點。", routeSelected:"已選取路線點。", routeInserted:"已插入新的路線點。",
-    routeNoDistance:"加入至少 2 個路線點後會顯示預估時間。",
+    routeNoDistance:"加入至少 2 個路線點後會顯示預估時間。", routeDuplicatePoint:"這個位置已經在路線裡，沒有重複加入。",
     summarySearchHistory:"最近搜尋", tabHelp:"檢查建議", tabActivity:"操作紀錄", tabAdvanced:"進階", diagnosisIdle:"按「幫我檢查」會列出目前最可能需要處理的事。",
     buttonCopyActivity:"複製紀錄", buttonClearActivity:"清除", buttonLog:"查看連線紀錄", labelRsdHost:"RSD Host", labelRsdPort:"RSD Port",
     labelMode:"模式", optionAuto:"自動", optionRsd:"僅 RSD", optionLegacy:"舊模式", advancedHint:"一般情況保持「自動」即可。只有在排查特定 iOS 或 pymobiledevice3 問題時才需要更改。",
@@ -499,6 +509,7 @@ const i18n = {
     tunnelHint:"The app connects to your phone automatically.", mountTitle:"Phone ready", mountHint:"When this says Ready, you can choose a place.",
     sessionTitle:"Location status", sessionHint:"After setting a place, it stays active until you stop or clear it.", buttonRefresh:"Check again", buttonRefreshStatus:"Refresh status", buttonReconnectTunnel:"Reconnect",
     healthTitle:"Health Check", healthPhone:"Phone", healthUsbPhone:"USB phone", healthConnection:"Location channel", healthReady:"Ready", healthLocationReady:"Location ready",
+    healthUpdated:"Updated {time}", healthDetailTitle:"{label}: {status}", statusDetailEmpty:"Hover or click a status to see details.",
     tabSingleLocation:"Single point", tabWalkRoute:"Walking route",
     simpleStep1Title:"1. Connect phone", simpleStep1Text:"Plug in, unlock, tap Trust.", simpleStep2Title:"2. Pick a place", simpleStep2Text:"Search or click the map.", simpleStep3Title:"3. Apply", simpleStep3Text:"Set this location on iPhone.", supportTitle:"More options",
     buttonTroubleshoot:"Help me check", tunnelCommand:"Phone Connection", buttonCopy:"Copy", buttonStartTunnel:"Retry connection", buttonCopyFallback:"Copy fallback command",
@@ -514,7 +525,7 @@ const i18n = {
     routeHint:"Press Plan route, then click the map to add route points in order.", routePlanning:"Planning route: click the map to add the next waypoint.",
     routeNeedPoints:"Add at least 2 route points.", routeStarted:"Walking simulation started.", routeStopped:"Walking simulation stopped.", routeCleared:"Route cleared.",
     routeInvalidSpeed:"Speed or update interval is invalid.", routePoint:"Route point", routeProgress:"Walking progress", routeReversed:"Route reversed.", routeUndo:"Deleted the last route point.", routeSelected:"Route point selected.", routeInserted:"Inserted a new route point.",
-    routeNoDistance:"Add at least 2 route points to show estimated time.",
+    routeNoDistance:"Add at least 2 route points to show estimated time.", routeDuplicatePoint:"This location is already in the route, so it was not added again.",
     summarySearchHistory:"Recent searches", tabHelp:"Suggestions", tabActivity:"Activity log", tabAdvanced:"Advanced", diagnosisIdle:"Click Help me check to list the most likely next steps.",
     buttonCopyActivity:"Copy history", buttonClearActivity:"Clear", buttonLog:"View connection log", labelRsdHost:"RSD Host", labelRsdPort:"RSD Port",
     labelMode:"Mode", optionAuto:"Auto", optionRsd:"RSD only", optionLegacy:"Legacy", advancedHint:"Auto is best for normal use. Change this only when troubleshooting iOS or pymobiledevice3 behavior.",
@@ -549,7 +560,7 @@ const i18n = {
 };
 const badgeKeys = { checking:"badgeChecking", ready:"badgeReady", connected:"badgeConnected", "usb connected":"badgeUsbConnected", "wifi visible":"badgeWifiVisible", "no phone":"badgeNoPhone", missing:"badgeMissing", mounted:"badgeMounted", mounting:"badgeMounting", failed:"badgeFailed", inactive:"badgeInactive", active:"badgeActive", starting:"badgeStarting", unknown:"badgeUnknown", "check log":"badgeCheckLog", "not ready":"badgeNotReady" };
 function t(key) { return (i18n[currentLang] && i18n[currentLang][key]) || key; }
-function setLanguage(lang) { currentLang = lang; localStorage.setItem("lang", lang); applyLanguage(); updateOverallStatus(); updateRouteControls(); }
+function setLanguage(lang) { currentLang = lang; localStorage.setItem("lang", lang); applyLanguage(); updateOverallStatus(); updateRouteControls(); updateHealthUpdatedAt(); refreshSelectedStatusDetail(); }
 function applyLanguage() {
   document.documentElement.lang = currentLang === "zh" ? "zh-Hant" : "en";
   $("languageSelect").value = currentLang;
@@ -685,6 +696,32 @@ function statusHelpText(labelKey, value) {
   };
   return t((helpMap[labelKey] && helpMap[labelKey][value]) || "");
 }
+function statusDetailText(el, value) {
+  const labelKey = el.dataset.i18nLabel || "";
+  const label = t(labelKey);
+  const statusText = t(badgeKeys[value] || value);
+  const helpText = statusHelpText(labelKey, value) || t("statusDetailEmpty");
+  return { label, statusText, helpText };
+}
+function showStatusDetail(el) {
+  const detail = $("statusDetail");
+  if (!detail || !el) return;
+  const { label, statusText, helpText } = statusDetailText(el, el.dataset.status || "");
+  selectedStatusDetailId = el.id;
+  detail.classList.add("open");
+  detail.innerHTML = `<b>${formatTemplate("healthDetailTitle", { label, status:statusText })}</b><span>${helpText}</span>`;
+}
+function refreshSelectedStatusDetail() {
+  if (!selectedStatusDetailId) return;
+  const el = $(selectedStatusDetailId);
+  if (el) showStatusDetail(el);
+}
+function updateHealthUpdatedAt() {
+  const el = $("healthUpdatedAt");
+  if (!el) return;
+  const time = new Date().toLocaleTimeString(currentLang === "zh" ? "zh-TW" : "en-US", { hour:"2-digit", minute:"2-digit", second:"2-digit" });
+  el.textContent = formatTemplate("healthUpdated", { time });
+}
 function renderStatusIcon(el, value, tone) {
   const labelKey = el.dataset.i18nLabel || "";
   const label = t(labelKey);
@@ -694,8 +731,19 @@ function renderStatusIcon(el, value, tone) {
   el.dataset.status = value;
   el.className = "status-dot " + tone;
   el.innerHTML = `<i data-lucide="${icon}" class="icon" aria-hidden="true"></i><span>${label}: ${statusText}</span>`;
+  el.dataset.tooltip = helpText || `${label}: ${statusText}`;
   el.title = helpText ? `${label}: ${statusText}\n${helpText}` : `${label}: ${statusText}`;
   el.setAttribute("aria-label", helpText ? `${label}: ${statusText}. ${helpText}` : `${label}: ${statusText}`);
+  el.setAttribute("role", "button");
+  el.setAttribute("tabindex", "0");
+  el.onclick = () => showStatusDetail(el);
+  el.onkeydown = event => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      showStatusDetail(el);
+    }
+  };
+  if (selectedStatusDetailId === el.id) refreshSelectedStatusDetail();
   refreshIcons();
 }
 function updateTunnelReconnectControl() {
@@ -922,6 +970,7 @@ async function refreshAll(button=null) {
     await refreshSessionStatus(true);
     updateOverallStatus();
   } finally {
+    updateHealthUpdatedAt();
     setButtonLoading(button, false);
   }
 }
@@ -1087,6 +1136,12 @@ function routePreviewText() {
 function formatTemplate(key, values) {
   return t(key).replace(/\{(\w+)\}/g, (_, name) => values[name] ?? "");
 }
+function hasDuplicateRoutePoint(lat, lon) {
+  if (!window.L || !map) {
+    return routePoints.some(point => point.lat === Number(lat) && point.lon === Number(lon));
+  }
+  return routePoints.some(point => map.distance([point.lat, point.lon], [Number(lat), Number(lon)]) < 1);
+}
 function setWalkSpeed(speedKmh) {
   $("walkSpeed").value = speedKmh;
   renderRoute();
@@ -1098,10 +1153,16 @@ function toggleRoutePlanning() {
   renderRoute();
 }
 function addRoutePoint(lat, lon) {
+  if (hasDuplicateRoutePoint(lat, lon)) {
+    $("routeStatus").textContent = t("routeDuplicatePoint");
+    showToast(t("routeDuplicatePoint"), "warn");
+    return false;
+  }
   routePoints.push({ lat:Number(lat), lon:Number(lon) });
   selectedRouteIndex = routePoints.length - 1;
   renderRoute();
   saveRouteDraft();
+  return true;
 }
 function midpoint(a, b) {
   return {
