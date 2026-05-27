@@ -593,6 +593,20 @@ def devices():
     result = _run(_pymd() + ["usbmux", "list"], timeout=20)
     payload = asdict(result)
     payload["raw"] = result.stdout or result.stderr
+    try:
+        device_list = json.loads(result.stdout or "[]") if result.ok else []
+    except json.JSONDecodeError:
+        device_list = []
+    connection_types = sorted({
+        str(device.get("ConnectionType", "")).strip()
+        for device in device_list
+        if device.get("ConnectionType")
+    })
+    payload["devices"] = device_list
+    payload["device_count"] = len(device_list)
+    payload["connection_types"] = connection_types
+    payload["usb_connected"] = any(item.lower() == "usb" for item in connection_types)
+    payload["network_visible"] = any(item.lower() in {"network", "wifi"} for item in connection_types)
     return payload
 
 

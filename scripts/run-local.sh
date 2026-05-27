@@ -78,4 +78,4 @@ else
   echo -e "Logs: ${YELLOW}make tunnel-log${NC}\n"
 fi
 
-uv run uvicorn app.main:app --host 127.0.0.1 --port 8787 --reload
+AUTO_START_TUNNEL=0 uv run uvicorn app.main:app --host 127.0.0.1 --port 8787 --reload

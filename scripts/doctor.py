@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import platform
+import json
 import ssl
 import subprocess
 import sys
@@ -42,5 +43,25 @@ try:
     ok(f"pymobiledevice3 CLI OK {version_text}")
 except Exception as exc:
     fail(f"pymobiledevice3 CLI failed: {exc}")
+
+try:
+    out = subprocess.run(
+        [sys.executable, "-m", "pymobiledevice3", "usbmux", "list"],
+        capture_output=True,
+        text=True,
+        timeout=15,
+    )
+    devices_text = (out.stdout or out.stderr or "").strip()
+    devices = json.loads(out.stdout or "[]") if out.returncode == 0 else []
+    if devices:
+        connection_types = ", ".join(sorted({device.get("ConnectionType", "Unknown") for device in devices}))
+        ok(f"iPhone visible via {connection_types}")
+        if "USB" not in {device.get("ConnectionType") for device in devices}:
+            print("⚠️  USB connection is not visible; tunnel helper will try Wi-Fi tunnel")
+    else:
+        print("⚠️  iPhone USB connection not visible yet")
+        print("   Unlock iPhone, trust this Mac, reconnect USB, then run: make tunnel")
+except Exception as exc:
+    print(f"⚠️  iPhone USB connection check skipped: {exc}")
 
 ok("runtime doctor passed")
